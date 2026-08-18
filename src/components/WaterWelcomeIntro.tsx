@@ -22,6 +22,19 @@ export const WaterWelcomeIntro: React.FC<WaterWelcomeIntroProps> = ({ onEnterApp
   // Ripple creator reference from canvas
   const triggerRippleRef = useRef<((x: number, y: number) => void) | null>(null);
 
+  // Lock scrollbars on root and body while the welcome screen is open
+  useEffect(() => {
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+    };
+  }, []);
+
   // Smooth step advancement with blur and fade dissolve
   const advanceStep = useCallback(() => {
     if (isTransitioningRef.current || isExiting) return;

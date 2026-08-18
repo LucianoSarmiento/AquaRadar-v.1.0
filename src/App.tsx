@@ -49,6 +49,21 @@ export const App: React.FC = () => {
   // Intro splash screen state
   const [showIntro, setShowIntro] = useState(true);
 
+  // Prevent scrollbar on the welcome intro screen and restore it when entering the app
+  useEffect(() => {
+    if (showIntro) {
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+  }, [showIntro]);
+
   // Multi-Sample State Array (1 to 10 samples) - Initialized completely empty and clean for user input
   const [samples, setSamples] = useState<SampleItem[]>(() => {
     const initialSample: SampleItem = {
