@@ -1,0 +1,80 @@
+import React from 'react';
+import { Droplet, BookOpen, History } from 'lucide-react';
+
+interface HeaderProps {
+  onOpenNormative: () => void;
+  onOpenHistory: () => void;
+  historyCount: number;
+  onLogoClick?: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({
+  onOpenNormative,
+  onOpenHistory,
+  historyCount,
+  onLogoClick,
+}) => {
+  return (
+    <header className="bg-slate-950/70 backdrop-blur-2xl border-b border-white/10 text-white sticky top-0 z-30 shadow-2xl shadow-black/40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo & Brand with Water Glow */}
+          <button
+            id="btn-header-logo"
+            type="button"
+            onClick={onLogoClick}
+            className="flex items-center gap-3 text-left group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded-2xl transition-all"
+            title="Ir a la pantalla de bienvenida"
+          >
+            <div className="relative h-10 w-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-cyan-500 to-teal-400 flex items-center justify-center shadow-lg shadow-cyan-500/25 border border-cyan-300/40 transition-transform group-hover:scale-105">
+              <div className="absolute inset-0 rounded-2xl bg-cyan-400/20 blur-sm pointer-events-none" />
+              <Droplet className="h-5 w-5 text-white fill-white/20 relative z-10 transition-transform group-hover:scale-110" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-black tracking-tight text-white font-sans flex items-center group-hover:text-cyan-200 transition-colors">
+                  Aqua<span className="text-cyan-400">Radar</span>
+                </span>
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 tracking-wider">
+                  D.S. 004-2017-MINAM
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 hidden md:block group-hover:text-slate-300 transition-colors">
+                Evaluador Oficial de Estándares de Calidad Ambiental para Agua (ECA)
+              </p>
+            </div>
+          </button>
+
+          {/* Action Tools */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <button
+              id="btn-normative-guide"
+              onClick={onOpenNormative}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-200 bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/25 backdrop-blur-md transition-all shadow-sm active:scale-95 cursor-pointer"
+              title="Consultar texto oficial y tabla del Anexo D.S. 004-2017-MINAM"
+            >
+              <BookOpen className="h-3.5 w-3.5 text-cyan-400" />
+              <span>Guía ECA</span>
+            </button>
+
+            <button
+              id="btn-history"
+              onClick={onOpenHistory}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-200 bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/25 backdrop-blur-md transition-all shadow-sm relative active:scale-95 cursor-pointer"
+              title="Historial de evaluaciones guardadas"
+            >
+              <History className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Historial</span>
+              {historyCount > 0 && (
+                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black border border-emerald-500/40">
+                  {historyCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
+

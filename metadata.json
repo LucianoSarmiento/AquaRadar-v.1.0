@@ -1,0 +1,7 @@
+{
+  "name": "AquaRadar",
+  "description": "Evaluador y comparador ambiental simultáneo de hasta 10 muestras de agua frente a los Estándares de Calidad Ambiental (ECA) para Agua en el Perú - D.S. N° 004-2017-MINAM.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
