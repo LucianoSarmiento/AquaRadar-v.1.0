@@ -12,6 +12,7 @@ import {
   exportReportToWord,
   exportTechnicalReportPDF,
 } from '../utils/exportUtils';
+import { generateStandardizedTechnicalReport } from '../utils/reportGenerator';
 import {
   BarChart,
   Bar,
@@ -143,21 +144,42 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     }
 
     try {
-      const response = await fetch('/api/ai-interpretation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      let analysisText: string | null = null;
+
+      try {
+        const response = await fetch('/api/ai-interpretation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            summary,
+            metadata,
+            mode: targetScope === 'ALL' ? 'all' : 'single',
+            samples: allSamples || [],
+          }),
+        });
+
+        const contentType = response.headers.get('content-type') || '';
+        if (response.ok && contentType.includes('application/json')) {
+          const data = await response.json();
+          if (data && data.analysis) {
+            analysisText = data.analysis;
+          }
+        }
+      } catch (networkOrApiErr) {
+        console.warn('Backend API endpoint not available or returned non-JSON. Utilizing standardized regulatory engine fallback.', networkOrApiErr);
+      }
+
+      // If serverless/backend API didn't return text (e.g. static hosting or missing endpoint), run client-side generator
+      if (!analysisText) {
+        analysisText = generateStandardizedTechnicalReport({
+          mode: targetScope === 'ALL' ? 'all' : 'single',
           summary,
           metadata,
-          mode: targetScope === 'ALL' ? 'all' : 'single',
           samples: allSamples || [],
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al comunicarse con el servicio de informe técnico asistido');
+        });
       }
-      setAiAnalysis(data.analysis);
+
+      setAiAnalysis(analysisText);
       setActiveTab('AI');
     } catch (err: any) {
       setAiError(err.message || 'No se pudo generar el informe técnico asistido.');

@@ -1,51 +1,54 @@
-import express from 'express';
-import path from 'path';
-import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
-import { generateStandardizedTechnicalReport } from './src/utils/reportGenerator';
+import { generateStandardizedTechnicalReport } from '../src/utils/reportGenerator';
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+export default async function handler(req: any, res: any) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  app.use(express.json());
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
-  // Server-side AI Interpretation endpoint with Multi-Model Fallback & High-Demand Resilience
-  app.post('/api/ai-interpretation', async (req, res) => {
-    try {
-      const { summary, metadata, mode, samples } = req.body;
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Método no permitido. Utilice POST.' });
+  }
 
-      if (!summary && (!samples || samples.length === 0)) {
-        return res.status(400).json({ error: 'Resumen de evaluación no proporcionado.' });
+  try {
+    const { summary, metadata, mode, samples } = req.body || {};
+
+    if (!summary && (!samples || samples.length === 0)) {
+      return res.status(400).json({ error: 'Resumen de evaluación no proporcionado.' });
+    }
+
+    const isMulti = mode === 'all' && Array.isArray(samples) && samples.length > 0;
+
+    if (!isMulti) {
+      if (!summary?.categoryId || !summary?.subcategoryId) {
+        return res.status(400).json({
+          error: 'No se puede realizar el análisis: No se ha configurado una Categoría o Subcategoría de agua válida (D.S. N° 004-2017-MINAM).'
+        });
       }
-
-      const isMulti = mode === 'all' && Array.isArray(samples) && samples.length > 0;
-
-      if (!isMulti) {
-        if (!summary?.categoryId || !summary?.subcategoryId) {
-          return res.status(400).json({
-            error: 'No se puede realizar el análisis: No se ha configurado una Categoría o Subcategoría de agua válida (D.S. N° 004-2017-MINAM).'
-          });
-        }
-        if (!summary?.results || summary.results.length === 0 || summary.totalEvaluated === 0) {
-          return res.status(400).json({
-            error: 'No se puede realizar el análisis: Debe ingresar como mínimo un (1) parámetro a evaluar en la matriz de resultados y medición analítica.'
-          });
-        }
-      } else {
-        const validSamples = (samples || []).filter(
-          (s: any) => s.categoryId && s.subcategoryId && s.summary && s.summary.totalEvaluated > 0
-        );
-        if (validSamples.length === 0) {
-          return res.status(400).json({
-            error: 'No se puede realizar el análisis: Ninguna de las muestras cuenta con Categoría configurada y al menos un parámetro analítico evaluado.'
-          });
-        }
+      if (!summary?.results || summary.results.length === 0 || summary.totalEvaluated === 0) {
+        return res.status(400).json({
+          error: 'No se puede realizar el análisis: Debe ingresar como mínimo un (1) parámetro a evaluar en la matriz de resultados y medición analítica.'
+        });
       }
+    } else {
+      const validSamples = (samples || []).filter(
+        (s: any) => s.categoryId && s.subcategoryId && s.summary && s.summary.totalEvaluated > 0
+      );
+      if (validSamples.length === 0) {
+        return res.status(400).json({
+          error: 'No se puede realizar el análisis: Ninguna de las muestras cuenta con Categoría configurada y al menos un parámetro analítico evaluado.'
+        });
+      }
+    }
 
-      const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
 
-      const prompt = `
+    const prompt = `
 Eres un especialista sénior en calidad ambiental, recursos hídricos y derecho ambiental en el Perú.
 Tu tarea es redactar un INFORME TÉCNICO DE EVALUACIÓN DE CALIDAD AMBIENTAL DEL RECURSO HÍDRICO exhaustivo, estructurado obligatoriamente según el formato oficial peruano (D.S. N° 004-2017-MINAM, Ley N° 28611, Ley N° 29338 y Protocolo R.J. N° 010-2016-ANA).
 
@@ -160,98 +163,69 @@ ${summary?.results
 }
 `;
 
-      // Candidate models in preference order
-      const candidateModels = [
-        'gemini-3.7-flash',
-        'gemini-3.1-flash-lite',
-        'gemini-3.1-pro-preview',
-      ];
+    // Candidate models in preference order
+    const candidateModels = [
+      'gemini-3.7-flash',
+      'gemini-3.1-flash-lite',
+      'gemini-3.1-pro-preview',
+    ];
 
-      let generatedAnalysis: string | null = null;
+    let generatedAnalysis: string | null = null;
 
-      if (apiKey) {
-        const ai = new GoogleGenAI({
-          apiKey,
-          httpOptions: {
-            headers: {
-              'User-Agent': 'aistudio-build',
-            },
+    if (apiKey) {
+      const ai = new GoogleGenAI({
+        apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
           },
-        });
+        },
+      });
 
-        for (const modelName of candidateModels) {
-          try {
-            const response = await ai.models.generateContent({
-              model: modelName,
-              contents: prompt,
-            });
+      for (const modelName of candidateModels) {
+        try {
+          const response = await ai.models.generateContent({
+            model: modelName,
+            contents: prompt,
+          });
 
-            if (response && response.text) {
-              generatedAnalysis = response.text;
-              break;
-            }
-          } catch (modelErr: any) {
-            console.warn(`Model ${modelName} returned error: ${modelErr?.message}. Trying fallback...`);
-            await new Promise(resolve => setTimeout(resolve, 400));
+          if (response && response.text) {
+            generatedAnalysis = response.text;
+            break;
           }
+        } catch (modelErr: any) {
+          console.warn(`Model ${modelName} returned error in Vercel function: ${modelErr?.message}. Trying fallback...`);
+          await new Promise(resolve => setTimeout(resolve, 300));
         }
       }
-
-      if (generatedAnalysis) {
-        return res.json({ analysis: generatedAnalysis, source: 'ai' });
-      }
-
-      console.info('Using standardized technical report generator fallback.');
-      const fallbackReport = generateStandardizedTechnicalReport({
-        mode,
-        summary,
-        metadata,
-        samples,
-      });
-
-      return res.json({
-        analysis: fallbackReport,
-        source: 'standard_engine',
-      });
-    } catch (err: any) {
-      console.error('Error generating AI interpretation:', err);
-      const fallbackReport = generateStandardizedTechnicalReport({
-        mode: req.body.mode,
-        summary: req.body.summary,
-        metadata: req.body.metadata,
-        samples: req.body.samples,
-      });
-      return res.json({
-        analysis: fallbackReport,
-        source: 'standard_engine',
-      });
     }
-  });
 
+    if (generatedAnalysis) {
+      return res.status(200).json({ analysis: generatedAnalysis, source: 'ai' });
+    }
 
-  // Health check endpoint
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', app: 'AquaRadar' });
-  });
-
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
+    const fallbackReport = generateStandardizedTechnicalReport({
+      mode,
+      summary,
+      metadata,
+      samples,
     });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+
+    return res.status(200).json({
+      analysis: fallbackReport,
+      source: 'standard_engine',
+    });
+  } catch (err: any) {
+    console.error('Error generating report in Vercel function:', err);
+    const fallbackReport = generateStandardizedTechnicalReport({
+      mode: req.body?.mode,
+      summary: req.body?.summary,
+      metadata: req.body?.metadata,
+      samples: req.body?.samples,
+    });
+    return res.status(200).json({
+      analysis: fallbackReport,
+      source: 'standard_engine',
     });
   }
-
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`AquaRadar server running on http://0.0.0.0:${PORT}`);
-  });
 }
-
-startServer();
