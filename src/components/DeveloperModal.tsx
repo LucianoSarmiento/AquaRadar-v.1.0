@@ -1,7 +1,7 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { X, Sparkles, ExternalLink, Award, Leaf } from 'lucide-react';
-import developerPhoto from '../assets/developer_photo.png';
+import { developerPhotoBase64 } from '../assets/developerPhotoBase64';
 
 interface DeveloperModalProps {
   isOpen: boolean;
@@ -72,16 +72,9 @@ export const DeveloperModal: React.FC<DeveloperModalProps> = ({ isOpen, onClose 
                 <div className="absolute -inset-1.5 rounded-full bg-gradient-to-tr from-cyan-500 via-blue-600 to-emerald-400 opacity-70 blur-sm group-hover:opacity-100 transition-opacity" />
                 <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full p-1 bg-slate-900 border-2 border-cyan-400/60 shadow-xl overflow-hidden">
                   <img
-                    src={developerPhoto}
+                    src={developerPhotoBase64}
                     alt="Luciano Julián Sarmiento Ramos"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      if (!target.src.includes('/developer_photo.png')) {
-                        target.src = '/developer_photo.png';
-                      }
-                    }}
                     className="w-full h-full object-cover object-center rounded-full transition-transform duration-500 group-hover:scale-105"
-                    referrerPolicy="no-referrer"
                   />
                 </div>
               </div>
