@@ -54,13 +54,13 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
 
       {/* Unconfigured Warning Alert Banner */}
       {!isFullyConfigured && (
-        <div className="mb-5 bg-rose-950/40 border border-rose-500/40 rounded-xl p-4 flex items-start gap-3 text-rose-200 text-xs backdrop-blur-md animate-in fade-in-50 duration-300">
-          <AlertOctagon className="h-5 w-5 shrink-0 text-rose-400 mt-0.5" />
+        <div className="mb-5 bg-amber-950/40 border border-amber-500/40 rounded-xl p-4 flex items-start gap-3 text-amber-200 text-xs backdrop-blur-md animate-in fade-in-50 duration-300">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-400 mt-0.5" />
           <div className="space-y-1">
-            <strong className="text-white font-bold block text-sm">
+            <strong className="text-amber-100 font-bold block text-sm">
               No se puede realizar el análisis de calidad ambiental
             </strong>
-            <p className="text-rose-200/90 leading-relaxed">
+            <p className="text-amber-200/90 leading-relaxed">
               No se ha configurado una <strong>Categoría</strong> o <strong>Subcategoría</strong> de agua aplicable. Debe seleccionar a continuación la clasificación normativa oficial según el D.S. N° 004-2017-MINAM para determinar los límites de comparación.
             </p>
           </div>

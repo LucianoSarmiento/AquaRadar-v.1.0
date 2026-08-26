@@ -410,7 +410,7 @@ export const WaterWelcomeIntro: React.FC<WaterWelcomeIntroProps> = ({ onEnterApp
               {/* Helper Message Headline */}
               <div className="space-y-3">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-bold uppercase tracking-widest backdrop-blur-md shadow-sm">
-                  <span>Normativa Oficial D.S. N° 004-2017-MINAM</span>
+                  <span>Normativa Oficial D.S. N° 004-2017-MINAM - ECA para agua</span>
                 </div>
                 <h2 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white via-emerald-100 to-cyan-200 tracking-tight leading-tight drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
                   TE AYUDO A EVALUAR LA CALIDAD AMBIENTAL DEL AGUA

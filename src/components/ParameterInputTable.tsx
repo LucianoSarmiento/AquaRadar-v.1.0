@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   ParameterDefinition,
   ParameterGroup,
@@ -23,6 +24,7 @@ import {
   FlaskConical,
   AlertTriangle,
   AlertOctagon,
+  ArrowDown,
 } from 'lucide-react';
 
 interface ParameterInputTableProps {
@@ -136,7 +138,92 @@ export const ParameterInputTable: React.FC<ParameterInputTableProps> = ({
         </div>
       )}
 
-      {/* Zero parameters warning */}
+      {/* Header & Quick Action Presets */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5 pb-4 border-b border-white/10 relative z-10">
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="flex h-8 w-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-white items-center justify-center text-xs font-extrabold shadow-lg shadow-cyan-500/30 border border-cyan-300/40 shrink-0">
+            2
+          </div>
+          <div className="shrink-0">
+            <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <span>Matriz de Resultados & Medición Analítica</span>
+              <FlaskConical className="h-4 w-4 text-cyan-400" />
+            </h2>
+            <p className="text-xs text-slate-300">
+              Valores numéricos, límites de detección (&lt; LOD) o No Detectable (ND)
+            </p>
+          </div>
+        </div>
+
+        {/* Actions & Interactive Yellow Scroll Notice */}
+        <div className="flex items-center flex-wrap gap-2.5">
+          <AnimatePresence>
+            {filledCount > 0 && (
+              <motion.button
+                type="button"
+                id="btn-scroll-to-evaluate"
+                key="btn-scroll-to-evaluate"
+                initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                transition={{ duration: 0.25 }}
+                onClick={() => {
+                  const evalBtn = document.getElementById('btn-evaluate-sample');
+                  if (evalBtn) {
+                    const headerOffset = 120;
+                    const elementPosition = evalBtn.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                      top: Math.max(0, offsetPosition),
+                      left: 0,
+                      behavior: 'smooth',
+                    });
+
+                    // Provide a brief high-energy pulse effect
+                    evalBtn.classList.add('ring-4', 'ring-cyan-300/80');
+                    setTimeout(() => {
+                      evalBtn.classList.remove('ring-4', 'ring-cyan-300/80');
+                    }, 1600);
+                  }
+                }}
+                className="group relative px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-400/25 to-yellow-500/20 hover:from-amber-500/30 hover:via-amber-400/35 hover:to-yellow-500/30 border border-amber-400/60 hover:border-amber-300 text-amber-200 hover:text-amber-100 text-xs font-semibold shadow-lg shadow-amber-950/40 hover:shadow-amber-500/20 backdrop-blur-md transition-all duration-300 flex items-center gap-2 cursor-pointer active:scale-95 overflow-hidden"
+                title="Haga clic para desplazarse directamente al botón de evaluación"
+              >
+                {/* Shimmer light beam animation */}
+                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-amber-200/25 to-transparent pointer-events-none" />
+
+                {/* Pulsing amber indicator beacon */}
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-80" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-300" />
+                </span>
+
+                <span className="text-amber-100 font-bold">
+                  Para iniciar el análisis desplácese hacia el fondo de la página
+                </span>
+
+                <div className="flex items-center gap-1 pl-1 border-l border-amber-400/30 text-amber-300 group-hover:text-white font-extrabold text-[11px]">
+                  <span>Evaluar</span>
+                  <ArrowDown className="h-3.5 w-3.5 animate-bounce text-amber-300 group-hover:text-amber-100 shrink-0" />
+                </div>
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          <button
+            id="btn-clear-all-inputs"
+            onClick={onClearAll}
+            className="text-xs px-3 py-1.5 text-slate-300 bg-white/5 hover:bg-rose-500/20 hover:text-rose-200 rounded-xl border border-white/10 hover:border-rose-400/30 backdrop-blur-md transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+            title="Limpiar datos ingresados"
+          >
+            <RotateCcw className="h-3 w-3" />
+            <span>Limpiar</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Zero parameters warning - Placed between Header/Limpiar and Field Conditions */}
       {isFullyConfigured && filledCount === 0 && (
         <div className="mb-5 bg-amber-950/40 border border-amber-500/40 rounded-xl p-4 flex items-start gap-3 text-amber-200 text-xs backdrop-blur-md animate-in fade-in-50 duration-300">
           <AlertTriangle className="h-5 w-5 shrink-0 text-amber-400 mt-0.5" />
@@ -150,37 +237,6 @@ export const ParameterInputTable: React.FC<ParameterInputTableProps> = ({
           </div>
         </div>
       )}
-
-      {/* Header & Quick Action Presets */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5 pb-4 border-b border-white/10 relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-white items-center justify-center text-xs font-extrabold shadow-lg shadow-cyan-500/30 border border-cyan-300/40">
-            3
-          </div>
-          <div>
-            <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              <span>Matriz de Resultados & Medición Analítica</span>
-              <FlaskConical className="h-4 w-4 text-cyan-400" />
-            </h2>
-            <p className="text-xs text-slate-300">
-              Valores numéricos, límites de detección (&lt; LOD) o No Detectable (ND)
-            </p>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center flex-wrap gap-2">
-          <button
-            id="btn-clear-all-inputs"
-            onClick={onClearAll}
-            className="text-xs px-3 py-1.5 text-slate-300 bg-white/5 hover:bg-rose-500/20 hover:text-rose-200 rounded-xl border border-white/10 hover:border-rose-400/30 backdrop-blur-md transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
-            title="Limpiar datos ingresados"
-          >
-            <RotateCcw className="h-3 w-3" />
-            <span>Limpiar</span>
-          </button>
-        </div>
-      </div>
 
       {/* Field Conditions Panel (Temperature, pH, Salinity) */}
       <div className="bg-gradient-to-r from-blue-950/40 via-slate-900/50 to-cyan-950/40 backdrop-blur-xl rounded-xl p-4 border border-cyan-500/25 mb-5 relative z-10">

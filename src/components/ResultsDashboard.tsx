@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { MarkdownView } from './MarkdownView';
 import {
   EvaluatedParamResult,
@@ -44,10 +45,36 @@ import {
   Percent,
   Waves,
   Layers,
+  ArrowUp,
   FileDown,
   Download,
   FileCheck,
+  Clock,
+  Activity,
 } from 'lucide-react';
+
+const REPORT_GENERATION_STAGES = [
+  {
+    phase: 1,
+    title: 'Recopilación de Matriz y Metadatos Analíticos',
+    desc: 'Extrayendo mediciones de laboratorio, unidades estandarizadas y condiciones de campo...',
+  },
+  {
+    phase: 2,
+    title: 'Cotejo Normativo D.S. N° 004-2017-MINAM',
+    desc: 'Verificando límites permisibles por Categoría y Subcategoría aplicable...',
+  },
+  {
+    phase: 3,
+    title: 'Redacción Técnico-Legal de las 12 Secciones',
+    desc: 'Formulando dictamen técnico, análisis de transgresiones, conclusiones y recomendaciones...',
+  },
+  {
+    phase: 4,
+    title: 'Compilación y Formateo Final del Documento',
+    desc: 'Estructurando tablas comparativas oficiales y formateo para exportación PDF y Word...',
+  },
+];
 
 interface ResultsDashboardProps {
   summary: SampleEvaluationSummary;
@@ -56,6 +83,7 @@ interface ResultsDashboardProps {
   activeSampleName?: string;
   onModifyInputs: () => void;
   onSaveToHistory: () => void;
+  onScrollToGeneralPanel?: () => void;
   isSaved: boolean;
 }
 
@@ -66,6 +94,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   activeSampleName,
   onModifyInputs,
   onSaveToHistory,
+  onScrollToGeneralPanel,
   isSaved,
 }) => {
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'TABLE' | 'AI'>('OVERVIEW');
@@ -73,8 +102,10 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
 
   // AI Interpretation & Technical Report state
-  const [reportScope, setReportScope] = useState<'SINGLE' | 'ALL'>('SINGLE');
+  const [reportScope, setReportScope] = useState<'SINGLE' | 'ALL' | null>(null);
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [currentStageIdx, setCurrentStageIdx] = useState(0);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
   const [copiedAi, setCopiedAi] = useState(false);
@@ -113,6 +144,8 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     const targetScope = overrideScope || reportScope;
     setIsGeneratingAi(true);
     setAiError(null);
+    setGenerationProgress(8);
+    setCurrentStageIdx(0);
 
     // Validate single mode
     if (targetScope === 'SINGLE') {
@@ -142,6 +175,18 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         return;
       }
     }
+
+    // Start animated progress interval
+    const progressInterval = setInterval(() => {
+      setGenerationProgress(prev => {
+        const next = Math.min(94, prev + Math.floor(Math.random() * 6) + 3);
+        if (next < 25) setCurrentStageIdx(0);
+        else if (next < 55) setCurrentStageIdx(1);
+        else if (next < 85) setCurrentStageIdx(2);
+        else setCurrentStageIdx(3);
+        return next;
+      });
+    }, 280);
 
     try {
       let analysisText: string | null = null;
@@ -179,11 +224,19 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         });
       }
 
+      // Smooth completion
+      clearInterval(progressInterval);
+      setGenerationProgress(100);
+      setCurrentStageIdx(3);
+      await new Promise(resolve => setTimeout(resolve, 600));
+
       setAiAnalysis(analysisText);
       setActiveTab('AI');
     } catch (err: any) {
+      clearInterval(progressInterval);
       setAiError(err.message || 'No se pudo generar el informe técnico asistido.');
     } finally {
+      clearInterval(progressInterval);
       setIsGeneratingAi(false);
     }
   };
@@ -223,7 +276,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             : 'bg-slate-900/80 text-white border-rose-500/50 shadow-rose-950/40'
         }`}
       >
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5 relative z-10">
           <div className="flex items-start gap-4">
             <div
               className={`p-4 rounded-2xl shadow-lg shrink-0 transition-transform ${
@@ -266,50 +319,88 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             </div>
           </div>
 
-          {/* Quick Action Export Buttons */}
-          <div className="flex items-center flex-wrap gap-2 self-start md:self-center shrink-0">
-            <button
-              id="btn-export-pdf"
-              onClick={() => exportToPDF(summary, metadata, aiAnalysis || undefined)}
-              className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition flex items-center gap-1.5 backdrop-blur-md active:scale-95 cursor-pointer shadow-sm"
-              title="Descargar informe oficial en formato PDF"
-            >
-              <FileText className="h-3.5 w-3.5 text-cyan-300" />
-              <span>Reporte PDF</span>
-            </button>
+          {/* Quick Action Export Buttons & Interactive Yellow Banner */}
+          <div className="flex flex-col items-start xl:items-end gap-2.5 self-start xl:self-center shrink-0">
+            <div className="flex items-center flex-wrap gap-2">
+              <button
+                id="btn-export-pdf"
+                onClick={() => exportToPDF(summary, metadata, aiAnalysis || undefined)}
+                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition flex items-center gap-1.5 backdrop-blur-md active:scale-95 cursor-pointer shadow-sm"
+                title="Descargar informe oficial en formato PDF"
+              >
+                <FileText className="h-3.5 w-3.5 text-cyan-300" />
+                <span>Reporte PDF</span>
+              </button>
 
-            <button
-              id="btn-export-excel"
-              onClick={() => exportToExcel(summary, metadata)}
-              className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition flex items-center gap-1.5 backdrop-blur-md active:scale-95 cursor-pointer shadow-sm"
-              title="Exportar matriz de datos a Excel"
-            >
-              <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-300" />
-              <span>Excel XLSX</span>
-            </button>
+              <button
+                id="btn-export-excel"
+                onClick={() => exportToExcel(summary, metadata)}
+                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition flex items-center gap-1.5 backdrop-blur-md active:scale-95 cursor-pointer shadow-sm"
+                title="Exportar matriz de datos a Excel"
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-300" />
+                <span>Excel XLSX</span>
+              </button>
 
-            <button
-              id="btn-save-history"
-              onClick={onSaveToHistory}
-              disabled={isSaved}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 backdrop-blur-md active:scale-95 ${
-                isSaved
-                  ? 'bg-emerald-600/30 text-emerald-300 border-emerald-500/40 cursor-default'
-                  : 'bg-white/10 hover:bg-white/20 text-white border-white/20 cursor-pointer'
-              }`}
-              title="Guardar en historial"
-            >
-              <Bookmark className="h-3.5 w-3.5" />
-              <span>{isSaved ? 'Guardado' : 'Guardar'}</span>
-            </button>
+              <button
+                id="btn-save-history"
+                onClick={onSaveToHistory}
+                disabled={isSaved}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 backdrop-blur-md active:scale-95 ${
+                  isSaved
+                    ? 'bg-emerald-600/30 text-emerald-300 border-emerald-500/40 cursor-default'
+                    : 'bg-white/10 hover:bg-white/20 text-white border-white/20 cursor-pointer'
+                }`}
+                title="Guardar en historial"
+              >
+                <Bookmark className="h-3.5 w-3.5" />
+                <span>{isSaved ? 'Guardado' : 'Guardar'}</span>
+              </button>
 
+              <button
+                id="btn-modify-inputs"
+                onClick={onModifyInputs}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-slate-950 font-extrabold text-xs transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/30 border border-cyan-300/40 active:scale-95 cursor-pointer"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span>Modificar Datos</span>
+              </button>
+            </div>
+
+            {/* Interactive Yellow Banner: Redirect to General Multi-Sample Panel */}
             <button
-              id="btn-modify-inputs"
-              onClick={onModifyInputs}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-slate-950 font-extrabold text-xs transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/30 border border-cyan-300/40 active:scale-95 cursor-pointer"
+              type="button"
+              id="btn-scroll-to-general-panel"
+              onClick={() => {
+                if (onScrollToGeneralPanel) {
+                  onScrollToGeneralPanel();
+                } else {
+                  const el = document.getElementById('panel-general-muestras');
+                  if (el) {
+                    const headerOffset = 76;
+                    const elementPosition = el.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                    window.scrollTo({
+                      top: Math.max(0, offsetPosition),
+                      behavior: 'smooth',
+                    });
+                  } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }
+              }}
+              className="group/hint inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 hover:border-amber-300 text-amber-200 hover:text-amber-100 text-xs font-medium backdrop-blur-md transition-all shadow-md shadow-amber-950/40 active:scale-95 cursor-pointer text-left"
+              title="Desplazarse a la vista del Panel General de Muestras Ambientales"
             >
-              <RefreshCw className="h-3.5 w-3.5" />
-              <span>Modificar Datos</span>
+              <span className="flex h-2 w-2 rounded-full bg-amber-400 animate-ping shrink-0" />
+              <Layers className="h-3.5 w-3.5 text-amber-300 shrink-0" />
+              <span>
+                Para reportes generales de todas las muestras, desplácese a la vista del{' '}
+                <strong className="text-amber-300 underline underline-offset-2 decoration-amber-400/60 font-bold group-hover/hint:text-white">
+                  Panel General de Muestras Ambientales
+                </strong>
+              </span>
+              <ArrowUp className="h-3.5 w-3.5 text-amber-300 shrink-0 transition-transform group-hover/hint:-translate-y-0.5" />
             </button>
           </div>
         </div>
@@ -391,15 +482,46 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         </button>
 
         <button
+          id="tab-btn-ai-assistant"
           onClick={() => setActiveTab('AI')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+          className={`relative group px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-2 cursor-pointer overflow-hidden ${
             activeTab === 'AI'
-              ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-cyan-500/30 border border-cyan-400/40'
-              : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10'
+              ? 'bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-950 shadow-lg shadow-cyan-500/40 border border-cyan-200 font-extrabold scale-[1.02]'
+              : 'bg-gradient-to-r from-cyan-950/70 via-slate-900/90 to-blue-950/70 hover:from-cyan-900/80 hover:via-slate-800/90 hover:to-blue-900/80 text-cyan-200 hover:text-white border border-cyan-400/60 hover:border-cyan-300 shadow-[0_0_16px_rgba(6,182,212,0.22)] hover:shadow-[0_0_24px_rgba(6,182,212,0.45)] hover:scale-[1.03] active:scale-95'
           }`}
         >
-          <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
-          <span>Interpretación Asistida</span>
+          {/* Shimmer light beam animation when inactive */}
+          {activeTab !== 'AI' && (
+            <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-cyan-300/20 to-transparent pointer-events-none" />
+          )}
+
+          {/* Pulsing indicator beacon */}
+          {activeTab !== 'AI' ? (
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-80" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-300" />
+            </span>
+          ) : null}
+
+          <Sparkles
+            className={`h-3.5 w-3.5 transition-all duration-300 shrink-0 ${
+              activeTab === 'AI'
+                ? 'text-slate-950 animate-bounce'
+                : 'text-cyan-300 animate-pulse group-hover:rotate-12 group-hover:scale-125'
+            }`}
+          />
+          <span className="tracking-wide">Interpretación Asistida</span>
+
+          {/* Highlight Mini-Badge */}
+          <span
+            className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md tracking-wider transition-all duration-300 ${
+              activeTab === 'AI'
+                ? 'bg-slate-950/80 text-cyan-300 border border-slate-950/20'
+                : 'bg-gradient-to-r from-cyan-400 to-teal-300 text-slate-950 shadow-xs shadow-cyan-400/50 group-hover:shadow-cyan-300/70 group-hover:scale-105'
+            }`}
+          >
+            IA
+          </span>
         </button>
       </div>
 
@@ -670,7 +792,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
       {/* Tab 3: AI Assistant View */}
       {activeTab === 'AI' && (
         <div className="bg-slate-900/70 backdrop-blur-2xl rounded-2xl p-6 text-white border border-cyan-500/30 shadow-2xl shadow-cyan-950/30 animate-in fade-in-50 duration-300 space-y-5">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 via-cyan-500 to-teal-400 border border-cyan-400/40 flex items-center justify-center text-slate-950 shadow-md shadow-blue-500/30 shrink-0 font-bold">
                 <Sparkles className="h-5 w-5 text-slate-950" />
@@ -685,50 +807,83 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               </div>
             </div>
 
-            {/* Scope Selection Controls: Single Sample vs All Samples */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-950/60 p-1.5 rounded-xl border border-white/10">
-              <div className="text-[11px] font-semibold text-slate-400 px-2 flex items-center gap-1.5">
-                <Filter className="h-3.5 w-3.5 text-cyan-400" />
-                <span>Alcance:</span>
+            {/* Scope Selection Controls & Yellow Guidance Alert */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-wrap">
+              <div className="flex items-center gap-2 bg-slate-950/70 p-1.5 rounded-xl border border-white/10 shrink-0">
+                <div className="text-[11px] font-semibold text-slate-400 px-2 flex items-center gap-1.5">
+                  <Filter className="h-3.5 w-3.5 text-cyan-400" />
+                  <span>Alcance:</span>
+                </div>
+
+                <button
+                  type="button"
+                  id="btn-scope-single"
+                  onClick={() => {
+                    setReportScope('SINGLE');
+                    if (aiError) setAiError(null);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    reportScope === 'SINGLE'
+                      ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30 font-black border border-cyan-300/40 scale-[1.02]'
+                      : 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent'
+                  }`}
+                  title="Generar informe técnico exclusivamente para la muestra seleccionada"
+                >
+                  <Waves className="h-3.5 w-3.5" />
+                  <span>Muestra Activa ({metadata.sampleCode || activeSampleName || 'Actual'})</span>
+                </button>
+
+                <button
+                  type="button"
+                  id="btn-scope-all"
+                  onClick={() => {
+                    setReportScope('ALL');
+                    if (aiError) setAiError(null);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    reportScope === 'ALL'
+                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 text-white shadow-md shadow-blue-500/30 font-black border border-blue-400/40 scale-[1.02]'
+                      : 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent'
+                  }`}
+                  title="Generar informe técnico integral consolidando todas las muestras configuradas"
+                >
+                  <Layers className="h-3.5 w-3.5" />
+                  <span>Todas las Muestras ({totalConfiguredSamples})</span>
+                </button>
               </div>
 
-              <button
-                type="button"
-                id="btn-scope-single"
-                onClick={() => {
-                  setReportScope('SINGLE');
-                }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                  reportScope === 'SINGLE'
-                    ? 'bg-cyan-500 text-slate-950 shadow-md font-black'
-                    : 'text-slate-300 hover:bg-white/10'
-                }`}
-                title="Generar informe técnico exclusivamente para la muestra seleccionada"
-              >
-                <Waves className="h-3.5 w-3.5" />
-                <span>Muestra Activa ({metadata.sampleCode || activeSampleName || 'Actual'})</span>
-              </button>
-
-              <button
-                type="button"
-                id="btn-scope-all"
-                onClick={() => {
-                  setReportScope('ALL');
-                }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
-                  reportScope === 'ALL'
-                    ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md font-black'
-                    : 'text-slate-300 hover:bg-white/10'
-                }`}
-                title="Generar informe técnico integral consolidando todas las muestras configuradas"
-              >
-                <Layers className="h-3.5 w-3.5" />
-                <span>Todas las Muestras ({totalConfiguredSamples})</span>
-              </button>
+              {/* Interactive Yellow Prompt Banner that disappears with slow smooth fade-out once a scope is chosen */}
+              <AnimatePresence>
+                {!reportScope && (
+                  <motion.div
+                    key="scope-selection-prompt"
+                    id="scope-selection-prompt"
+                    initial={{ opacity: 0, x: -8, scale: 0.95 }}
+                    animate={{ 
+                      opacity: 1, 
+                      x: 0, 
+                      scale: 1,
+                      transition: { duration: 0.3, ease: 'easeOut' }
+                    }}
+                    exit={{ 
+                      opacity: 0, 
+                      x: 10, 
+                      scale: 0.95,
+                      filter: 'blur(2px)',
+                      transition: { duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }
+                    }}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-400/60 text-amber-200 text-xs font-medium shadow-lg shadow-amber-950/40 backdrop-blur-md whitespace-nowrap"
+                  >
+                    <span className="flex h-2 w-2 rounded-full bg-amber-400 animate-ping shrink-0" />
+                    <Info className="h-3.5 w-3.5 text-amber-300 shrink-0" />
+                    <span>Seleccione para cuántas muestras se va a realizar el informe</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
-          {/* Scope notice banner */}
+          {/* Scope notice and Action Bar */}
           <div className="p-3.5 rounded-xl bg-cyan-950/40 border border-cyan-500/20 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-cyan-100/90">
             <div className="flex items-center gap-2">
               <Info className="h-4 w-4 text-cyan-400 shrink-0" />
@@ -737,7 +892,9 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 <strong className="text-white">
                   {reportScope === 'SINGLE'
                     ? `Informe individual para la muestra "${metadata.sampleCode || activeSampleName || 'Actual'}" (Subcategoría ${summary.subcategoryCode})`
-                    : `Informe general consolidado integrando las ${totalConfiguredSamples} muestras configuradas en la matriz`}
+                    : reportScope === 'ALL'
+                    ? `Informe general consolidado integrando las ${totalConfiguredSamples} muestras configuradas en la matriz`
+                    : 'Sin alcance seleccionado (elija arriba "Muestra Activa" o "Todas las Muestras")'}
                 </strong>
               </span>
             </div>
@@ -745,19 +902,47 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <button
               type="button"
               id="btn-generate-ai-analysis"
-              onClick={() => handleGenerateAi()}
+              onClick={() => {
+                if (!reportScope) {
+                  setAiError('Por favor seleccione el alcance del informe (Muestra Activa o Todas las Muestras) antes de generar el informe técnico.');
+                  return;
+                }
+                handleGenerateAi();
+              }}
               disabled={isGeneratingAi}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 hover:from-blue-500 hover:to-cyan-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/30 border border-cyan-300/50 disabled:opacity-50 active:scale-98 cursor-pointer shrink-0"
+              className={`relative group px-4 py-2 rounded-xl font-extrabold text-xs transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden shrink-0 cursor-pointer active:scale-95 disabled:opacity-50 ${
+                isGeneratingAi
+                  ? 'bg-cyan-900/60 text-cyan-200 border border-cyan-500/40 cursor-wait'
+                  : 'bg-gradient-to-r from-cyan-950/80 via-slate-900/90 to-blue-950/80 hover:from-cyan-900 hover:via-slate-800 hover:to-blue-900 text-cyan-200 hover:text-white border border-cyan-400/60 hover:border-cyan-300 shadow-[0_0_16px_rgba(6,182,212,0.25)] hover:shadow-[0_0_24px_rgba(6,182,212,0.5)] hover:scale-[1.03]'
+              }`}
             >
+              {/* Shimmer light beam animation */}
+              {!isGeneratingAi && (
+                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-cyan-300/25 to-transparent pointer-events-none" />
+              )}
+
+              {/* Pulsing indicator beacon */}
+              {!isGeneratingAi && (
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-80" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-300" />
+                </span>
+              )}
+
               {isGeneratingAi ? (
                 <>
-                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                  <span>Elaborando 12 secciones...</span>
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-cyan-300" />
+                  <span>Generando informe...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>{aiAnalysis ? 'Regenerar Informe Técnico' : 'Generar Informe Técnico'}</span>
+                  <Sparkles className="h-3.5 w-3.5 text-cyan-300 animate-pulse group-hover:rotate-12 group-hover:scale-125 transition-transform" />
+                  <span className="tracking-wide">{aiAnalysis ? 'Regenerar Informe Técnico' : 'Generar Informe Técnico'}</span>
+                  
+                  {/* Highlight Micro-Badge */}
+                  <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md tracking-wider bg-gradient-to-r from-cyan-400 to-teal-300 text-slate-950 shadow-xs shadow-cyan-400/50 group-hover:shadow-cyan-300/70 group-hover:scale-105 transition-all">
+                    OFICIAL
+                  </span>
                 </>
               )}
             </button>
@@ -770,7 +955,125 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             </div>
           )}
 
-          {aiAnalysis ? (
+          {isGeneratingAi ? (
+            <div className="bg-slate-950/80 backdrop-blur-2xl rounded-2xl p-6 sm:p-10 border border-cyan-500/40 shadow-2xl shadow-cyan-950/50 space-y-6 text-center animate-in fade-in-50 duration-300">
+              <div className="max-w-xl mx-auto space-y-6">
+                {/* Animated Circular + Radial Progress Meter */}
+                <div className="relative w-36 h-36 mx-auto flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full bg-cyan-500/15 blur-2xl animate-pulse" />
+                  <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 120 120">
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="50"
+                      className="text-slate-800/80"
+                      strokeWidth="8"
+                      stroke="currentColor"
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="50"
+                      strokeWidth="8"
+                      strokeDasharray={2 * Math.PI * 50}
+                      strokeDashoffset={2 * Math.PI * 50 * (1 - generationProgress / 100)}
+                      strokeLinecap="round"
+                      stroke="url(#reportProgressGradient)"
+                      fill="transparent"
+                      className="transition-all duration-300 ease-out"
+                    />
+                    <defs>
+                      <linearGradient id="reportProgressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#06b6d4" />
+                        <stop offset="50%" stopColor="#3b82f6" />
+                        <stop offset="100%" stopColor="#10b981" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+
+                  {/* Center Progress Percentage */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-black text-white font-mono tracking-tight">
+                      {generationProgress}%
+                    </span>
+                    <span className="text-[9px] font-black text-cyan-300 uppercase tracking-widest mt-0.5">
+                      EN PROCESO
+                    </span>
+                  </div>
+                </div>
+
+                {/* Real-time Stage Description */}
+                <div className="space-y-1.5">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-[11px] font-bold">
+                    <Activity className="h-3 w-3 animate-pulse text-cyan-400" />
+                    <span>Fase {currentStageIdx + 1} de 4</span>
+                  </div>
+                  <h4 className="text-base sm:text-lg font-black text-white tracking-tight">
+                    {REPORT_GENERATION_STAGES[currentStageIdx]?.title}
+                  </h4>
+                  <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
+                    {REPORT_GENERATION_STAGES[currentStageIdx]?.desc}
+                  </p>
+                </div>
+
+                {/* Progress Bar & 4 Phase Steps */}
+                <div className="space-y-3 pt-2">
+                  <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-white/10">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-emerald-400 transition-all duration-300"
+                      style={{ width: `${generationProgress}%` }}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-left">
+                    {REPORT_GENERATION_STAGES.map((stg, idx) => {
+                      const isDone = currentStageIdx > idx || generationProgress >= 100;
+                      const isCurrent = currentStageIdx === idx && generationProgress < 100;
+                      return (
+                        <div
+                          key={idx}
+                          className={`p-2.5 rounded-xl border text-[11px] transition-all duration-300 ${
+                            isDone
+                              ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200'
+                              : isCurrent
+                              ? 'bg-cyan-950/60 border-cyan-400/60 text-cyan-100 shadow-md shadow-cyan-950/40 ring-1 ring-cyan-400/40'
+                              : 'bg-white/[0.02] border-white/5 text-slate-400'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5 font-bold mb-1">
+                            {isDone ? (
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                            ) : isCurrent ? (
+                              <RefreshCw className="h-3.5 w-3.5 text-cyan-300 animate-spin shrink-0" />
+                            ) : (
+                              <span className="h-3.5 w-3.5 rounded-full border border-slate-600 flex items-center justify-center text-[9px] font-mono shrink-0">
+                                {idx + 1}
+                              </span>
+                            )}
+                            <span className="truncate">Fase {idx + 1}</span>
+                          </div>
+                          <div className="text-[10px] text-slate-300/80 truncate">
+                            {stg.title}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Note below the meter indicating that it may take a few minutes */}
+              <div className="pt-4 border-t border-white/10">
+                <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-400/50 text-amber-200 text-xs font-medium max-w-xl mx-auto shadow-lg shadow-amber-950/40 backdrop-blur-md text-left">
+                  <Clock className="h-4 w-4 text-amber-300 shrink-0 animate-pulse" />
+                  <p className="leading-relaxed">
+                    <strong className="text-amber-100 font-bold">Aviso:</strong> La estructuración oficial del informe técnico puede demorar algunos minutos según la cantidad de parámetros y muestras a procesar.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : aiAnalysis ? (
             <div className="space-y-6">
               {/* Document Header Bar with Quick Export Actions */}
               <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-950/80 rounded-xl border border-white/10">

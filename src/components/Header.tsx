@@ -1,9 +1,10 @@
 import React from 'react';
-import { Droplet, BookOpen, History } from 'lucide-react';
+import { Droplet, BookOpen, History, User } from 'lucide-react';
 
 interface HeaderProps {
   onOpenNormative: () => void;
   onOpenHistory: () => void;
+  onOpenDeveloper: () => void;
   historyCount: number;
   onLogoClick?: () => void;
 }
@@ -11,6 +12,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   onOpenNormative,
   onOpenHistory,
+  onOpenDeveloper,
   historyCount,
   onLogoClick,
 }) => {
@@ -47,6 +49,17 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Action Tools */}
           <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Developer Profile Trigger Button (Left of Guia ECA) */}
+            <button
+              id="btn-open-developer"
+              onClick={onOpenDeveloper}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium text-cyan-200 bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-500/30 hover:border-cyan-400/60 backdrop-blur-md transition-all shadow-sm active:scale-95 cursor-pointer group"
+              title="Conoce al desarrollador de AquaRadar Perú"
+            >
+              <User className="h-3.5 w-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
+              <span>Conoce al desarrollador</span>
+            </button>
+
             <button
               id="btn-normative-guide"
               onClick={onOpenNormative}

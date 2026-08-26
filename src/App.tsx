@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   SampleItem,
   SampleEvaluationSummary,
@@ -21,8 +22,11 @@ import { ParameterInputTable } from './components/ParameterInputTable';
 import { ResultsDashboard } from './components/ResultsDashboard';
 import { NormativeViewerModal } from './components/NormativeViewerModal';
 import { HistoryModal } from './components/HistoryModal';
+import { AddSampleModal } from './components/AddSampleModal';
+import { DeveloperModal } from './components/DeveloperModal';
 import { WaterWelcomeIntro } from './components/WaterWelcomeIntro';
 import { LiveWaterBackdrop } from './components/LiveWaterBackdrop';
+import { AltairEmblem } from './components/AltairEmblem';
 import {
   Droplet,
   Sparkles,
@@ -35,6 +39,7 @@ import {
   ChevronRight,
   ShieldCheck,
   AlertOctagon,
+  AlertTriangle,
   Eye,
   CheckCircle2,
 } from 'lucide-react';
@@ -64,39 +69,19 @@ export const App: React.FC = () => {
     };
   }, [showIntro]);
 
-  // Multi-Sample State Array (1 to 10 samples) - Initialized completely empty and clean for user input
-  const [samples, setSamples] = useState<SampleItem[]>(() => {
-    const initialSample: SampleItem = {
-      id: generateSampleId(),
-      name: 'Muestra 1',
-      categoryId: '' as WaterCategoryId,
-      subcategoryId: '' as SubcategoryId,
-      metadata: {
-        sampleCode: '',
-        waterBody: '',
-        location: '',
-        samplingDate: '',
-        samplerName: '',
-        coordinates: '',
-        projectName: '',
-        laboratory: '',
-        notes: '',
-      },
-      inputs: {},
-      fieldMeasurements: {},
-      isEvaluated: false,
-      summary: null,
-    };
-
-    return [initialSample];
-  });
+  // Multi-Sample State Array (0 to 10 samples) - Initialized empty
+  const [samples, setSamples] = useState<SampleItem[]>([]);
 
   const [activeSampleId, setActiveSampleId] = useState<string>('');
 
-  // Set default active sample ID on mount
+  // Set default active sample ID on mount or when samples array changes
   useEffect(() => {
-    if (samples.length > 0 && !activeSampleId) {
-      setActiveSampleId(samples[0].id);
+    if (samples.length > 0) {
+      if (!activeSampleId || !samples.some(s => s.id === activeSampleId)) {
+        setActiveSampleId(samples[0].id);
+      }
+    } else {
+      setActiveSampleId('');
     }
   }, [samples, activeSampleId]);
 
@@ -110,7 +95,12 @@ export const App: React.FC = () => {
   // Modals state
   const [isNormativeOpen, setIsNormativeOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isDeveloperOpen, setIsDeveloperOpen] = useState(false);
+  const [isAddSampleModalOpen, setIsAddSampleModalOpen] = useState(false);
   const [isCurrentSaved, setIsCurrentSaved] = useState(false);
+  const [shakeResultsTab, setShakeResultsTab] = useState(false);
+  const [resultsErrorMessage, setResultsErrorMessage] = useState<string | null>(null);
+  const resultsErrorTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Saved Evaluations in localStorage
   const [savedEvaluations, setSavedEvaluations] = useState<SavedEvaluation[]>(() => {
@@ -133,19 +123,31 @@ export const App: React.FC = () => {
 
   // Current active sample object
   const activeSampleIndex = samples.findIndex(s => s.id === activeSampleId);
-  const activeSample = activeSampleIndex >= 0 ? samples[activeSampleIndex] : samples[0];
+  const activeSample = activeSampleIndex >= 0 ? samples[activeSampleIndex] : (samples.length > 0 ? samples[0] : null);
 
   // ----------------------------------------------------
   // Sample Management Functions (Add, Delete, Duplicate, Edit)
   // ----------------------------------------------------
 
-  const handleAddSample = () => {
-    if (samples.length >= MAX_SAMPLES) return;
+  const handleOpenAddSampleModal = () => {
+    if (samples.length >= MAX_SAMPLES) {
+      setValidationAlert({
+        title: 'Límite máximo alcanzado',
+        message: `El sistema permite registrar hasta un máximo de ${MAX_SAMPLES} muestras en paralelo.`,
+        type: 'info',
+      });
+      return;
+    }
+    setIsAddSampleModalOpen(true);
+  };
 
+  const handleConfirmAddSample = (sampleName: string) => {
     const nextIndex = samples.length + 1;
+    const finalName = sampleName.trim() || `Muestra ${nextIndex}`;
+
     const newSample: SampleItem = {
       id: generateSampleId(),
-      name: `Muestra ${nextIndex}`,
+      name: finalName,
       categoryId: '' as WaterCategoryId,
       subcategoryId: '' as SubcategoryId,
       metadata: {
@@ -167,15 +169,15 @@ export const App: React.FC = () => {
 
     setSamples(prev => [...prev, newSample]);
     setActiveSampleId(newSample.id);
+    setViewMode('INPUT');
+    setIsAddSampleModalOpen(false);
   };
 
   const handleDeleteSample = (idToDelete: string) => {
-    if (samples.length <= 1) return; // Keep at least 1 sample
-
     setSamples(prev => {
       const filtered = prev.filter(s => s.id !== idToDelete);
-      if (activeSampleId === idToDelete && filtered.length > 0) {
-        setActiveSampleId(filtered[0].id);
+      if (activeSampleId === idToDelete) {
+        setActiveSampleId(filtered.length > 0 ? filtered[0].id : '');
       }
       return filtered;
     });
@@ -332,13 +334,49 @@ export const App: React.FC = () => {
   // Evaluation Handlers (Single Sample and Batch All)
   // ----------------------------------------------------
 
+  const scrollToResultsView = () => {
+    setTimeout(() => {
+      const el = document.getElementById('navigation-view-switcher');
+      if (el) {
+        const headerOffset = 76;
+        const elementPosition = el.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+          top: Math.max(0, offsetPosition),
+          behavior: 'smooth',
+        });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 60);
+  };
+
+  const scrollToGeneralPanel = () => {
+    const el = document.getElementById('panel-general-muestras');
+    if (el) {
+      const headerOffset = 76;
+      const elementPosition = el.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: Math.max(0, offsetPosition),
+        behavior: 'smooth',
+      });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const handleEvaluateSingle = (sampleToEval: SampleItem) => {
     // 1. Validate Category and Subcategory
     if (!sampleToEval.categoryId || !sampleToEval.subcategoryId) {
+      setShakeResultsTab(true);
+      setTimeout(() => setShakeResultsTab(false), 600);
       setValidationAlert({
-        title: 'No se puede realizar el análisis de calidad ambiental',
+        title: 'Primero debe ingresar la información en la matriz de ingreso para proseguir',
         message:
-          'No se ha configurado una Categoría o Subcategoría de agua válida según el D.S. N° 004-2017-MINAM. Por favor, seleccione la categoría y subcategoría en el Paso 1.',
+          'No se ha configurado la Categoría o Subcategoría de agua según el D.S. N° 004-2017-MINAM (Paso 1). Seleccione la clasificación correspondiente y registre sus parámetros para continuar.',
         type: 'error',
       });
       return;
@@ -350,11 +388,13 @@ export const App: React.FC = () => {
     ).length;
 
     if (filledCount === 0) {
+      setShakeResultsTab(true);
+      setTimeout(() => setShakeResultsTab(false), 600);
       setValidationAlert({
-        title: 'No se puede realizar el análisis de calidad ambiental',
+        title: 'Primero debe ingresar la información en la matriz de ingreso para proseguir',
         message:
-          'Debe ingresar como mínimo un (1) parámetro a evaluar con su respectiva medición analítica en la matriz de resultados.',
-        type: 'warning',
+          'Debe ingresar como mínimo un (1) parámetro a evaluar con su respectiva medición analítica en la Matriz de Ingreso (Paso 2) antes de generar el informe y gráficos.',
+        type: 'error',
       });
       return;
     }
@@ -379,42 +419,88 @@ export const App: React.FC = () => {
 
     if (activeSampleId === sampleToEval.id) {
       setViewMode('RESULTS');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToResultsView();
+    }
+  };
+
+  const triggerResultsError = (msg: string) => {
+    setShakeResultsTab(true);
+    setTimeout(() => setShakeResultsTab(false), 600);
+    setResultsErrorMessage(msg);
+    if (resultsErrorTimerRef.current) {
+      clearTimeout(resultsErrorTimerRef.current);
+    }
+    resultsErrorTimerRef.current = setTimeout(() => {
+      setResultsErrorMessage(null);
+    }, 3500);
+  };
+
+  const handleSwitchToResults = () => {
+    if (!activeSample) return;
+
+    if (!activeSample.categoryId || !activeSample.subcategoryId) {
+      triggerResultsError('Primero complete la Matriz de Ingreso');
+      return;
+    }
+
+    const filledCount = Object.values(activeSample.inputs).filter(
+      (v: any) => v && v.value !== '' && v.value !== undefined
+    ).length;
+
+    if (filledCount === 0) {
+      triggerResultsError('Primero complete la Matriz de Ingreso');
+      return;
+    }
+
+    setResultsErrorMessage(null);
+    if (activeSample.summary) {
+      setViewMode('RESULTS');
+    } else {
+      handleEvaluateSingle(activeSample);
     }
   };
 
   const handleEvaluateAll = () => {
+    if (samples.length === 0) {
+      setValidationAlert({
+        title: 'No hay muestras registradas',
+        message: 'Agregue una nueva muestra para continuar con la evaluación ambiental.',
+        type: 'info',
+      });
+      return;
+    }
+
     let evaluatedCount = 0;
     let unconfiguredCount = 0;
     let zeroParamsCount = 0;
 
-    setSamples(prev =>
-      prev.map(s => {
-        const isConfigured = Boolean(s.categoryId && s.subcategoryId);
-        if (!isConfigured) {
-          unconfiguredCount++;
-          return s;
-        }
+    const updatedSamples = samples.map(s => {
+      const isConfigured = Boolean(s.categoryId && s.subcategoryId);
+      if (!isConfigured) {
+        unconfiguredCount++;
+        return s;
+      }
 
-        const filledCount = Object.values(s.inputs).filter(
-          (v: any) => v && v.value !== '' && v.value !== undefined
-        ).length;
+      const filledCount = Object.values(s.inputs).filter(
+        (v: any) => v && v.value !== '' && v.value !== undefined
+      ).length;
 
-        if (filledCount === 0) {
-          zeroParamsCount++;
-          return s;
-        }
+      if (filledCount === 0) {
+        zeroParamsCount++;
+        return s;
+      }
 
-        evaluatedCount++;
-        const summary = evaluateSampleSet(
-          s.categoryId,
-          s.subcategoryId,
-          s.inputs,
-          s.fieldMeasurements
-        );
-        return { ...s, isEvaluated: true, summary };
-      })
-    );
+      evaluatedCount++;
+      const summary = evaluateSampleSet(
+        s.categoryId,
+        s.subcategoryId,
+        s.inputs,
+        s.fieldMeasurements
+      );
+      return { ...s, isEvaluated: true, summary };
+    });
+
+    setSamples(updatedSamples);
 
     if (evaluatedCount === 0) {
       setValidationAlert({
@@ -513,6 +599,7 @@ export const App: React.FC = () => {
       <Header
         onOpenNormative={() => setIsNormativeOpen(true)}
         onOpenHistory={() => setIsHistoryOpen(true)}
+        onOpenDeveloper={() => setIsDeveloperOpen(true)}
         historyCount={savedEvaluations.length}
         onLogoClick={() => setShowIntro(true)}
       />
@@ -522,9 +609,10 @@ export const App: React.FC = () => {
         {/* Validation Alert Notification Banner */}
         {validationAlert && (
           <div
+            id="validation-alert-banner"
             className={`p-4 rounded-2xl border backdrop-blur-xl flex items-start justify-between gap-3 shadow-2xl transition-all duration-300 animate-in slide-in-from-top-4 ${
               validationAlert.type === 'error'
-                ? 'bg-rose-950/80 border-rose-500/50 text-rose-200 shadow-rose-950/50'
+                ? 'bg-rose-950/80 border-rose-500/50 text-rose-200 shadow-rose-950/50 animate-error-shake'
                 : 'bg-amber-950/80 border-amber-500/50 text-amber-200 shadow-amber-950/50'
             }`}
           >
@@ -554,24 +642,46 @@ export const App: React.FC = () => {
         )}
 
         {/* 1. Global Multi-Sample Aggregated Summary Dashboard */}
-        <MultiSampleSummary
-          samples={samples}
-          activeSampleId={activeSampleId}
-          onSelectSample={id => {
-            setActiveSampleId(id);
-            const targetSample = samples.find(s => s.id === id);
-            if (targetSample && targetSample.summary) {
-              setViewMode('RESULTS');
-            } else {
-              setViewMode('INPUT');
-            }
-          }}
-          onAddSample={handleAddSample}
-          onEvaluateAll={handleEvaluateAll}
-          onExportMultiExcel={() => exportMultiSampleExcel(samples)}
-          onExportMultiPDF={() => exportMultiSamplePDF(samples)}
-          maxSamplesReached={samples.length >= MAX_SAMPLES}
-        />
+        <div id="panel-general-muestras" className="scroll-mt-20">
+          <MultiSampleSummary
+            samples={samples}
+            activeSampleId={activeSampleId}
+            onSelectSample={id => {
+              setActiveSampleId(id);
+              const targetSample = samples.find(s => s.id === id);
+              if (targetSample && targetSample.summary) {
+                setViewMode('RESULTS');
+              } else {
+                setViewMode('INPUT');
+              }
+            }}
+            onAddSample={handleOpenAddSampleModal}
+            onEvaluateAll={handleEvaluateAll}
+            onExportMultiExcel={() => {
+              if (samples.length === 0) {
+                setValidationAlert({
+                  title: 'Sin muestras para exportar',
+                  message: 'Agregue una nueva muestra para generar la matriz en Excel.',
+                  type: 'info',
+                });
+                return;
+              }
+              exportMultiSampleExcel(samples);
+            }}
+            onExportMultiPDF={() => {
+              if (samples.length === 0) {
+                setValidationAlert({
+                  title: 'Sin muestras para exportar',
+                  message: 'Agregue una nueva muestra para generar el reporte en PDF.',
+                  type: 'info',
+                });
+                return;
+              }
+              exportMultiSamplePDF(samples);
+            }}
+            maxSamplesReached={samples.length >= MAX_SAMPLES}
+          />
+        </div>
 
         {/* 2. Sample Management Carousel / Cards Grid (Up to 10 Samples) */}
         <section className="space-y-3">
@@ -590,7 +700,7 @@ export const App: React.FC = () => {
               <button
                 id="btn-add-sample-row"
                 type="button"
-                onClick={handleAddSample}
+                onClick={handleOpenAddSampleModal}
                 className="text-xs font-bold px-3 py-1.5 rounded-xl bg-white/10 hover:bg-cyan-500/20 text-cyan-300 border border-white/15 hover:border-cyan-400/40 transition flex items-center gap-1 active:scale-95 cursor-pointer"
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -600,175 +710,251 @@ export const App: React.FC = () => {
           </div>
 
           {/* Cards Grid: Adaptive to small screens & desktop */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {samples.map((sample, idx) => (
-              <SampleCard
-                key={sample.id}
-                sample={sample}
-                index={idx}
-                isActive={sample.id === activeSampleId}
-                canDelete={samples.length > 1}
-                canDuplicate={samples.length < MAX_SAMPLES}
-                onSelect={() => setActiveSampleId(sample.id)}
-                onDelete={() => handleDeleteSample(sample.id)}
-                onDuplicate={() => handleDuplicateSample(sample)}
-                onEvaluate={() => handleEvaluateSingle(sample)}
-                onUpdateName={name => handleUpdateSampleName(sample.id, name)}
-              />
-            ))}
-          </div>
+          {samples.length === 0 ? (
+            <div
+              id="card-empty-sample-prompt"
+              onClick={handleOpenAddSampleModal}
+              className="group relative rounded-2xl p-8 sm:p-12 border border-cyan-500/35 hover:border-cyan-400/70 bg-slate-900/70 hover:bg-slate-900/90 backdrop-blur-2xl transition-all duration-200 cursor-pointer flex flex-col items-center justify-center text-center space-y-4 max-w-xl mx-auto shadow-2xl shadow-cyan-950/30 animate-in zoom-in-95"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 mx-auto flex items-center justify-center group-hover:scale-110 group-hover:bg-cyan-500/25 transition-all shadow-lg shadow-cyan-500/20">
+                <Layers className="h-7 w-7 stroke-[2]" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-base sm:text-lg font-black text-white group-hover:text-cyan-300 transition-colors tracking-tight">
+                  No hay muestras registradas
+                </h3>
+                <p className="text-xs text-slate-300/90 leading-relaxed max-w-md mx-auto">
+                  Agregue una nueva muestra para continuar con la selección de categoría ECA (D.S. N° 004-2017-MINAM), ingreso de parámetros analíticos y evaluación de calidad ambiental.
+                </p>
+              </div>
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenAddSampleModal();
+                  }}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 group-hover:from-blue-500 group-hover:via-cyan-400 group-hover:to-teal-300 text-white font-extrabold text-xs shadow-lg shadow-cyan-500/25 active:scale-95 transition-all inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <Plus className="h-4 w-4 stroke-[2.5]" />
+                  <span>Agregar Nueva Muestra</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {samples.map((sample, idx) => (
+                <SampleCard
+                  key={sample.id}
+                  sample={sample}
+                  index={idx}
+                  isActive={sample.id === activeSampleId}
+                  canDelete={true}
+                  canDuplicate={samples.length < MAX_SAMPLES}
+                  onSelect={() => setActiveSampleId(sample.id)}
+                  onDelete={() => handleDeleteSample(sample.id)}
+                  onDuplicate={() => handleDuplicateSample(sample)}
+                  onEvaluate={() => handleEvaluateSingle(sample)}
+                  onUpdateName={name => handleUpdateSampleName(sample.id, name)}
+                />
+              ))}
+            </div>
+          )}
         </section>
 
-        {/* 3. Navigation View Switcher (Input Matrix vs Results View) */}
-        <div className="flex items-center justify-between gap-4 pt-2 border-t border-white/10">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setViewMode('INPUT')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'INPUT'
-                  ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/25 border border-cyan-400/50'
-                  : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10'
-              }`}
-            >
-              <span>Matriz de Ingreso</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (activeSample?.summary) {
-                  setViewMode('RESULTS');
-                } else if (activeSample) {
-                  handleEvaluateSingle(activeSample);
-                }
-              }}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'RESULTS'
-                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow-lg shadow-teal-500/25 border border-teal-300/60 font-black'
-                  : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10'
-              }`}
-            >
-              <Eye className="h-3.5 w-3.5" />
-              <span>Resultados & Gráficos</span>
-              {activeSample?.isEvaluated && (
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping ml-0.5" />
-              )}
-            </button>
-          </div>
-
-          <div className="text-xs text-slate-400 hidden sm:flex items-center gap-2">
-            <span>Editando:</span>
-            <span className="text-cyan-300 font-bold px-2 py-0.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
-              {activeSample?.name}
-            </span>
-          </div>
-        </div>
-
-        {/* 4. Active Sample Workspace (Inputs or Results) */}
-        {viewMode === 'INPUT' && activeSample && (
-          <div className="space-y-6 animate-in fade-in-50 duration-300">
-            {/* Step 1: Category & Subcategory Selector */}
-            <CategorySelector
-              selectedCategory={activeSample.categoryId}
-              selectedSubcategory={activeSample.subcategoryId}
-              onSelectCategory={handleCategoryChange}
-              onSelectSubcategory={handleSubcategoryChange}
-            />
-
-            {/* Step 2: Sample Metadata & Traceability Form */}
+        {/* 3. Sample Metadata & Traceability Form (Placed above Navigation View Switcher) */}
+        {samples.length > 0 && activeSample && (
+          <div className="pt-2 border-t border-white/10">
             <SampleMetadataForm
               metadata={activeSample.metadata}
               onChangeMetadata={handleMetadataChange}
             />
-
-            {/* Step 3: Dynamic Parameter Input Table */}
-            <ParameterInputTable
-              categoryId={activeSample.categoryId}
-              subcategoryId={activeSample.subcategoryId}
-              inputs={activeSample.inputs}
-              fieldMeasurements={activeSample.fieldMeasurements}
-              onInputChange={handleInputChange}
-              onClearAll={handleClearInputs}
-              onLoadPreset={handleLoadPreset}
-              onFieldMeasurementsChange={handleFieldMeasurementsChange}
-              onEvaluate={() => handleEvaluateSingle(activeSample)}
-            />
           </div>
         )}
 
-        {viewMode === 'RESULTS' && activeSample && (
-          <div>
-            {activeSample.summary && activeSample.summary.totalEvaluated > 0 ? (
-              <ResultsDashboard
-                summary={activeSample.summary}
-                metadata={activeSample.metadata}
-                allSamples={samples}
-                activeSampleName={activeSample.name}
-                onModifyInputs={() => setViewMode('INPUT')}
-                onSaveToHistory={handleSaveToHistory}
-                isSaved={isCurrentSaved}
-              />
-            ) : !activeSample.categoryId || !activeSample.subcategoryId ? (
-              <div className="bg-slate-900/80 border border-rose-500/40 rounded-2xl p-8 sm:p-10 text-center space-y-4 max-w-xl mx-auto shadow-2xl backdrop-blur-2xl animate-in zoom-in-95 duration-200">
-                <div className="w-14 h-14 rounded-2xl bg-rose-500/20 text-rose-300 mx-auto flex items-center justify-center border border-rose-500/30">
-                  <AlertOctagon className="h-7 w-7" />
-                </div>
-                <div className="space-y-1.5">
-                  <h3 className="text-base font-black text-white tracking-tight">
-                    No se puede realizar el análisis de calidad ambiental
-                  </h3>
-                  <p className="text-xs text-rose-200/90 leading-relaxed max-w-md mx-auto">
-                    No se ha configurado una <strong>Categoría</strong> o <strong>Subcategoría</strong> de agua para esta muestra. Seleccione la clasificación oficial correspondiente según el D.S. N° 004-2017-MINAM en el Paso 1 para habilitar la evaluación.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setViewMode('INPUT')}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-extrabold text-xs shadow-lg shadow-cyan-500/25 active:scale-95 cursor-pointer transition-all"
-                >
-                  Ir a Seleccionar Categoría (Paso 1)
-                </button>
-              </div>
-            ) : Object.values(activeSample.inputs).filter((v: any) => v && v.value !== '' && v.value !== undefined).length === 0 ? (
-              <div className="bg-slate-900/80 border border-amber-500/40 rounded-2xl p-8 sm:p-10 text-center space-y-4 max-w-xl mx-auto shadow-2xl backdrop-blur-2xl animate-in zoom-in-95 duration-200">
-                <div className="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-300 mx-auto flex items-center justify-center border border-amber-500/30">
-                  <AlertOctagon className="h-7 w-7" />
-                </div>
-                <div className="space-y-1.5">
-                  <h3 className="text-base font-black text-white tracking-tight">
-                    No se puede realizar el análisis de calidad ambiental
-                  </h3>
-                  <p className="text-xs text-amber-200/90 leading-relaxed max-w-md mx-auto">
-                    No se ha ingresado ninguna determinación analítica. Debe ingresar como mínimo <strong>un (1) punto o parámetro a evaluar</strong> con su respectiva medición en la matriz de resultados.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setViewMode('INPUT')}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-lg shadow-cyan-500/25 active:scale-95 cursor-pointer transition-all"
-                >
-                  Ir a Matriz de Ingreso (Paso 3)
-                </button>
-              </div>
-            ) : (
-              <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-8 text-center space-y-4">
-                <div className="w-12 h-12 rounded-full bg-cyan-500/20 text-cyan-300 mx-auto flex items-center justify-center">
-                  <Play className="h-6 w-6 ml-0.5" />
-                </div>
-                <h3 className="text-base font-bold text-white">
-                  Esta muestra aún no ha sido evaluada
-                </h3>
-                <p className="text-xs text-slate-300 max-w-md mx-auto">
-                  Presione el botón a continuación para procesar los parámetros ingresados contra los límites del ECA (D.S. 004-2017-MINAM).
-                </p>
-                <button
-                  onClick={() => handleEvaluateSingle(activeSample)}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 active:scale-95 cursor-pointer"
-                >
-                  Evaluar Muestra Ahora
-                </button>
+        {/* 4. Navigation View Switcher (Input Matrix vs Results View) */}
+        {samples.length > 0 && (
+          <div
+            id="navigation-view-switcher"
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 scroll-mt-24"
+          >
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('INPUT');
+                  setResultsErrorMessage(null);
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  viewMode === 'INPUT'
+                    ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/25 border border-cyan-400/50'
+                    : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10'
+                }`}
+              >
+                <span>Matriz de Ingreso</span>
+              </button>
+
+              <button
+                type="button"
+                id="tab-btn-results"
+                onClick={handleSwitchToResults}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  shakeResultsTab
+                    ? 'animate-error-shake ring-2 ring-rose-500 bg-rose-950/80 text-rose-200 border border-rose-500 shadow-lg shadow-rose-950/70'
+                    : viewMode === 'RESULTS'
+                    ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow-lg shadow-teal-500/25 border border-teal-300/60 font-black'
+                    : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10'
+                }`}
+              >
+                <Eye className="h-3.5 w-3.5" />
+                <span>Resultados & Gráficos</span>
+                {activeSample?.isEvaluated && (
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping ml-0.5" />
+                )}
+              </button>
+
+              {/* Inline Error Message right next to the tab button with smooth fade exit */}
+              <AnimatePresence>
+                {resultsErrorMessage && (
+                  <motion.div
+                    key="results-tab-error-msg"
+                    id="results-tab-error-msg"
+                    initial={{ opacity: 0, x: -8, scale: 0.95 }}
+                    animate={{ 
+                      opacity: 1, 
+                      x: 0, 
+                      scale: 1,
+                      transition: { duration: 0.3, ease: 'easeOut' }
+                    }}
+                    exit={{ 
+                      opacity: 0, 
+                      x: 10, 
+                      scale: 0.96,
+                      transition: { duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/95 border border-rose-500/70 text-rose-200 text-xs font-bold shadow-lg shadow-rose-950/70 whitespace-nowrap backdrop-blur-md"
+                  >
+                    <AlertTriangle className="h-3.5 w-3.5 text-rose-400 shrink-0 animate-pulse" />
+                    <span>{resultsErrorMessage}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="text-xs text-slate-400 hidden sm:flex items-center gap-2">
+              <span>Editando:</span>
+              <span className="text-cyan-300 font-bold px-2 py-0.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+                {activeSample?.name}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* 5. Active Sample Workspace (Inputs or Results) */}
+        {samples.length > 0 && (
+          <>
+            {viewMode === 'INPUT' && activeSample && (
+              <div className="space-y-6 animate-in fade-in-50 duration-300">
+                {/* Step 1: Category & Subcategory Selector */}
+                <CategorySelector
+                  selectedCategory={activeSample.categoryId}
+                  selectedSubcategory={activeSample.subcategoryId}
+                  onSelectCategory={handleCategoryChange}
+                  onSelectSubcategory={handleSubcategoryChange}
+                />
+
+                {/* Step 2: Dynamic Parameter Input Table (Visualized only after Category & Subcategory are selected) */}
+                {Boolean(activeSample.categoryId && activeSample.subcategoryId) && (
+                  <ParameterInputTable
+                    categoryId={activeSample.categoryId}
+                    subcategoryId={activeSample.subcategoryId}
+                    inputs={activeSample.inputs}
+                    fieldMeasurements={activeSample.fieldMeasurements}
+                    onInputChange={handleInputChange}
+                    onClearAll={handleClearInputs}
+                    onLoadPreset={handleLoadPreset}
+                    onFieldMeasurementsChange={handleFieldMeasurementsChange}
+                    onEvaluate={() => handleEvaluateSingle(activeSample)}
+                  />
+                )}
               </div>
             )}
-          </div>
+
+            {viewMode === 'RESULTS' && activeSample && (
+              <div>
+                {activeSample.summary && activeSample.summary.totalEvaluated > 0 ? (
+                  <ResultsDashboard
+                    summary={activeSample.summary}
+                    metadata={activeSample.metadata}
+                    allSamples={samples}
+                    activeSampleName={activeSample.name}
+                    onModifyInputs={() => setViewMode('INPUT')}
+                    onSaveToHistory={handleSaveToHistory}
+                    onScrollToGeneralPanel={scrollToGeneralPanel}
+                    isSaved={isCurrentSaved}
+                  />
+                ) : !activeSample.categoryId || !activeSample.subcategoryId ? (
+                  <div className="bg-slate-900/80 border border-amber-500/40 rounded-2xl p-8 sm:p-10 text-center space-y-4 max-w-xl mx-auto shadow-2xl backdrop-blur-2xl animate-in zoom-in-95 duration-200">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-300 mx-auto flex items-center justify-center border border-amber-500/30">
+                      <AlertOctagon className="h-7 w-7" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <h3 className="text-base font-black text-white tracking-tight">
+                        No se puede realizar el análisis de calidad ambiental
+                      </h3>
+                      <p className="text-xs text-amber-200/90 leading-relaxed max-w-md mx-auto">
+                        No se ha configurado una <strong>Categoría</strong> o <strong>Subcategoría</strong> de agua para esta muestra. Seleccione la clasificación oficial correspondiente según el D.S. N° 004-2017-MINAM en el Paso 2 para habilitar la evaluación.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setViewMode('INPUT')}
+                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-extrabold text-xs shadow-lg shadow-cyan-500/25 active:scale-95 cursor-pointer transition-all"
+                    >
+                      Ir a Seleccionar Categoría (Paso 2)
+                    </button>
+                  </div>
+                ) : Object.values(activeSample.inputs).filter((v: any) => v && v.value !== '' && v.value !== undefined).length === 0 ? (
+                  <div className="bg-slate-900/80 border border-amber-500/40 rounded-2xl p-8 sm:p-10 text-center space-y-4 max-w-xl mx-auto shadow-2xl backdrop-blur-2xl animate-in zoom-in-95 duration-200">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-300 mx-auto flex items-center justify-center border border-amber-500/30">
+                      <AlertOctagon className="h-7 w-7" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <h3 className="text-base font-black text-white tracking-tight">
+                        No se puede realizar el análisis de calidad ambiental
+                      </h3>
+                      <p className="text-xs text-amber-200/90 leading-relaxed max-w-md mx-auto">
+                        No se ha ingresado ninguna determinación analítica. Debe ingresar como mínimo <strong>un (1) punto o parámetro a evaluar</strong> con su respectiva medición en la matriz de resultados.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setViewMode('INPUT')}
+                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-lg shadow-cyan-500/25 active:scale-95 cursor-pointer transition-all"
+                    >
+                      Ir a Matriz de Ingreso (Paso 3)
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-8 text-center space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-cyan-500/20 text-cyan-300 mx-auto flex items-center justify-center">
+                      <Play className="h-6 w-6 ml-0.5" />
+                    </div>
+                    <h3 className="text-base font-bold text-white">
+                      Esta muestra aún no ha sido evaluada
+                    </h3>
+                    <p className="text-xs text-slate-300 max-w-md mx-auto">
+                      Presione el botón a continuación para procesar los parámetros ingresados contra los límites del ECA (D.S. 004-2017-MINAM).
+                    </p>
+                    <button
+                      onClick={() => handleEvaluateSingle(activeSample)}
+                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 active:scale-95 cursor-pointer"
+                    >
+                      Evaluar Muestra Ahora
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </main>
 
@@ -785,19 +971,29 @@ export const App: React.FC = () => {
               <Droplet className="h-3 w-3 text-cyan-300" />
             </div>
             <span className="font-bold text-white group-hover:text-cyan-300 transition-colors">AquaRadar Perú</span>
-            <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 text-[10px] font-mono border border-cyan-500/20 font-medium">v.1.0</span>
+            <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 text-[10px] font-mono border border-cyan-500/20 font-medium">v2.0</span>
             <span className="text-slate-400 font-normal">© 2026</span>
             <span className="text-slate-400">
               — Sistema Multimuestra de Verificación de Calidad Ambiental del Agua (D.S. N° 004-2017-MINAM)
             </span>
           </button>
-          <div className="text-[11px] text-slate-400/90 font-mono">
-            Hasta 10 muestras en simultáneo
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 select-none opacity-80" aria-label="Casa Altair">
+            <span>Casa Altair</span>
+            <AltairEmblem size={16} className="w-4 h-4 text-slate-400" />
           </div>
         </div>
       </footer>
 
       {/* Modals */}
+      <AddSampleModal
+        isOpen={isAddSampleModalOpen}
+        onClose={() => setIsAddSampleModalOpen(false)}
+        onConfirm={handleConfirmAddSample}
+        defaultSampleName={`Muestra ${samples.length + 1}`}
+        currentCount={samples.length}
+        maxSamples={MAX_SAMPLES}
+      />
+
       <NormativeViewerModal
         isOpen={isNormativeOpen}
         onClose={() => setIsNormativeOpen(false)}
@@ -810,6 +1006,11 @@ export const App: React.FC = () => {
         onRestore={handleRestoreFromHistory}
         onDelete={id => setSavedEvaluations(prev => prev.filter(e => e.id !== id))}
         onClearHistory={() => setSavedEvaluations([])}
+      />
+
+      <DeveloperModal
+        isOpen={isDeveloperOpen}
+        onClose={() => setIsDeveloperOpen(false)}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SampleMetadata } from '../types';
-import { MapPin, Calendar, User, Compass, ChevronDown, ChevronUp, Tag } from 'lucide-react';
+import { MapPin, Calendar, User, Compass, ChevronDown, ChevronUp, Tag, FileSpreadsheet, ClipboardList } from 'lucide-react';
 
 interface SampleMetadataFormProps {
   metadata: SampleMetadata;
@@ -11,7 +11,7 @@ export const SampleMetadataForm: React.FC<SampleMetadataFormProps> = ({
   metadata,
   onChangeMetadata,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   const handleChange = (field: keyof SampleMetadata, value: string) => {
     onChangeMetadata({
@@ -31,15 +31,15 @@ export const SampleMetadataForm: React.FC<SampleMetadataFormProps> = ({
         className="w-full px-5 sm:px-6 py-4 flex items-center justify-between bg-white/[0.02] hover:bg-white/[0.06] text-left transition-all duration-200 backdrop-blur-xl cursor-pointer"
       >
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex h-8 w-8 rounded-xl bg-white/10 text-white items-center justify-center text-xs font-extrabold border border-white/20">
-            2
+          <div className="flex h-8 w-8 rounded-xl bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 items-center justify-center shadow-lg shadow-cyan-500/20">
+            <ClipboardList className="h-4 w-4 stroke-[2.2]" />
           </div>
           <div>
             <span className="text-sm font-bold text-white block sm:inline">
               Datos de Muestra & Trazabilidad
             </span>
             <span className="text-[11px] text-slate-400 sm:ml-2">
-              (Opcional para el reporte e informes técnicos)
+              (Identificación y metadatos de campo)
             </span>
           </div>
 
