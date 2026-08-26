@@ -1,48 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { X, Sparkles, ExternalLink, Award, Leaf, Camera, Upload } from 'lucide-react';
-import fallbackPhoto from '../assets/developer_photo.jpg';
+import { X, Sparkles, ExternalLink, Award, Leaf } from 'lucide-react';
+import developerPhoto from '../assets/developer_photo.png';
 
 interface DeveloperModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const STORAGE_KEY = 'aquaRadar_developer_photo';
-
 export const DeveloperModal: React.FC<DeveloperModalProps> = ({ isOpen, onClose }) => {
-  const [photoSrc, setPhotoSrc] = useState<string>(() => {
-    return localStorage.getItem(STORAGE_KEY) || '/FOTO PERFIL.png';
-  });
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setPhotoSrc(saved);
-    }
-  }, [isOpen]);
-
-  const handleImageError = () => {
-    // If /FOTO PERFIL.png fails to load and no custom photo was saved, fallback gracefully
-    if (!localStorage.getItem(STORAGE_KEY)) {
-      setPhotoSrc(fallbackPhoto);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        setPhotoSrc(result);
-        localStorage.setItem(STORAGE_KEY, result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   if (!isOpen) return null;
 
   const whatsappNumber = '51989651011';
@@ -98,39 +64,25 @@ export const DeveloperModal: React.FC<DeveloperModalProps> = ({ isOpen, onClose 
             </div>
           </div>
 
-          {/* Hidden File Input for direct photo selection */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-            className="hidden"
-          />
-
           {/* Main Layout: Circular Photo + Content */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
             {/* Left Column: Circular Profile Photo + 'Más sobre mí' button below it */}
             <div className="flex flex-col items-center gap-3 shrink-0">
               <div className="relative group">
                 <div className="absolute -inset-1.5 rounded-full bg-gradient-to-tr from-cyan-500 via-blue-600 to-emerald-400 opacity-70 blur-sm group-hover:opacity-100 transition-opacity" />
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full p-1 bg-slate-900 border-2 border-cyan-400/60 shadow-xl overflow-hidden cursor-pointer"
-                  title="Haz clic para seleccionar o reemplazar la foto de perfil"
-                >
+                <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full p-1 bg-slate-900 border-2 border-cyan-400/60 shadow-xl overflow-hidden">
                   <img
-                    src={photoSrc}
+                    src={developerPhoto}
                     alt="Luciano Julián Sarmiento Ramos"
-                    onError={handleImageError}
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.src.includes('/developer_photo.png')) {
+                        target.src = '/developer_photo.png';
+                      }
+                    }}
                     className="w-full h-full object-cover object-center rounded-full transition-transform duration-500 group-hover:scale-105"
                     referrerPolicy="no-referrer"
                   />
-
-                  {/* Subtle hover overlay to upload file */}
-                  <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-full flex flex-col items-center justify-center text-cyan-300 gap-1 backdrop-blur-xs">
-                    <Camera className="w-6 h-6" />
-                    <span className="text-[10px] font-semibold tracking-wide">Cambiar foto</span>
-                  </div>
                 </div>
               </div>
 
@@ -191,3 +143,4 @@ export const DeveloperModal: React.FC<DeveloperModalProps> = ({ isOpen, onClose 
     </AnimatePresence>
   );
 };
+
