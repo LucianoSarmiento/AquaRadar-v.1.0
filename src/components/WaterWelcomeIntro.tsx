@@ -182,11 +182,9 @@ export const WaterWelcomeIntro: React.FC<WaterWelcomeIntroProps> = ({ onEnterApp
         const waveFreq1 = 0.0035 + w * 0.0008;
         const waveFreq2 = 0.007 + w * 0.0012;
 
-        ctx.beginPath();
-        ctx.moveTo(0, height);
-        ctx.lineTo(0, baseY);
-
-        for (let x = 0; x <= width + stepX; x += stepX) {
+        // Collect wave points from beyond the left edge to beyond the right edge
+        const points: { x: number; y: number }[] = [];
+        for (let x = -stepX * 2; x <= width + stepX * 2; x += stepX) {
           let y =
             baseY +
             Math.sin(x * waveFreq1 + time * waveSpeed + w * 1.5) * waveAmp +
@@ -217,10 +215,19 @@ export const WaterWelcomeIntro: React.FC<WaterWelcomeIntroProps> = ({ onEnterApp
             }
           }
 
-          ctx.lineTo(x, y);
+          points.push({ x, y });
         }
 
-        ctx.lineTo(width, height);
+        if (points.length === 0) continue;
+
+        // 1. Fill wave body polygon down to bottom (no borders/side strokes)
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, height + 20);
+        ctx.lineTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.lineTo(points[points.length - 1].x, height + 20);
         ctx.closePath();
 
         // Layer color with transparency & depth
@@ -243,9 +250,14 @@ export const WaterWelcomeIntro: React.FC<WaterWelcomeIntroProps> = ({ onEnterApp
         ctx.fillStyle = waveGrad;
         ctx.fill();
 
-        // Specular sunlight highlight crest
-        ctx.lineWidth = 1.8;
-        ctx.strokeStyle = `rgba(186, 240, 255, ${0.15 + (1 - waveProgress) * 0.45})`;
+        // 2. Specular sunlight highlight crest - stroke ONLY along the wavy top surface
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.lineWidth = 1.6;
+        ctx.strokeStyle = `rgba(186, 240, 255, ${0.12 + (1 - waveProgress) * 0.45})`;
         ctx.stroke();
       }
 
