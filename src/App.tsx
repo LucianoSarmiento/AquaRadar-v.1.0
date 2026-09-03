@@ -102,6 +102,31 @@ export const App: React.FC = () => {
   const [resultsErrorMessage, setResultsErrorMessage] = useState<string | null>(null);
   const resultsErrorTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Transgression direct navigation states
+  const [resultsTab, setResultsTab] = useState<'OVERVIEW' | 'TABLE' | 'AI'>('OVERVIEW');
+  const [resultsStatusFilter, setResultsStatusFilter] = useState<'ALL' | 'CUMPLE' | 'TRANSGREDE'>('ALL');
+  const [highlightParamName, setHighlightParamName] = useState<string | undefined>(undefined);
+  const [resultsNavTrigger, setResultsNavTrigger] = useState<number>(0);
+
+  const handleNavigateToTransgression = (sampleId: string, paramName: string) => {
+    setActiveSampleId(sampleId);
+    setViewMode('RESULTS');
+    setResultsTab('TABLE');
+    setResultsStatusFilter('TRANSGREDE');
+    setHighlightParamName(paramName);
+    setResultsNavTrigger(Date.now());
+
+    // Smoothly scroll down to the transgression panel of that sample
+    setTimeout(() => {
+      const targetElement =
+        document.getElementById('panel-matriz-detallada') ||
+        document.getElementById('panel-resultados-muestra');
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 120);
+  };
+
   // Saved Evaluations in localStorage
   const [savedEvaluations, setSavedEvaluations] = useState<SavedEvaluation[]>(() => {
     try {
@@ -655,6 +680,7 @@ export const App: React.FC = () => {
                 setViewMode('INPUT');
               }
             }}
+            onNavigateToTransgression={handleNavigateToTransgression}
             onAddSample={handleOpenAddSampleModal}
             onEvaluateAll={handleEvaluateAll}
             onExportMultiExcel={() => {
@@ -892,6 +918,10 @@ export const App: React.FC = () => {
                     onSaveToHistory={handleSaveToHistory}
                     onScrollToGeneralPanel={scrollToGeneralPanel}
                     isSaved={isCurrentSaved}
+                    initialTab={resultsTab}
+                    initialStatusFilter={resultsStatusFilter}
+                    highlightParamName={highlightParamName}
+                    navigationTrigger={resultsNavTrigger}
                   />
                 ) : !activeSample.categoryId || !activeSample.subcategoryId ? (
                   <div className="bg-slate-900/80 border border-amber-500/40 rounded-2xl p-8 sm:p-10 text-center space-y-4 max-w-xl mx-auto shadow-2xl backdrop-blur-2xl animate-in zoom-in-95 duration-200">

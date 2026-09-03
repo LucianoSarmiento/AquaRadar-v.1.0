@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { MarkdownView } from './MarkdownView';
 import {
@@ -85,6 +85,10 @@ interface ResultsDashboardProps {
   onSaveToHistory: () => void;
   onScrollToGeneralPanel?: () => void;
   isSaved: boolean;
+  initialTab?: 'OVERVIEW' | 'TABLE' | 'AI';
+  initialStatusFilter?: 'ALL' | 'CUMPLE' | 'TRANSGREDE';
+  highlightParamName?: string;
+  navigationTrigger?: number;
 }
 
 export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
@@ -96,10 +100,44 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   onSaveToHistory,
   onScrollToGeneralPanel,
   isSaved,
+  initialTab,
+  initialStatusFilter,
+  highlightParamName,
+  navigationTrigger,
 }) => {
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'TABLE' | 'AI'>('OVERVIEW');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'CUMPLE' | 'TRANSGREDE'>('ALL');
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'TABLE' | 'AI'>(initialTab || 'OVERVIEW');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'CUMPLE' | 'TRANSGREDE'>(initialStatusFilter || 'ALL');
   const [searchTerm, setSearchTerm] = useState('');
+  const [highlightParam, setHighlightParam] = useState<string | undefined>(highlightParamName);
+
+  // Sync tab if initialTab prop changes
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  // Sync status filter if initialStatusFilter prop changes
+  useEffect(() => {
+    if (initialStatusFilter) {
+      setStatusFilter(initialStatusFilter);
+    }
+  }, [initialStatusFilter]);
+
+  // When a direct navigation occurs, ensure table view, filter transgresiones, highlight and scroll
+  useEffect(() => {
+    if (navigationTrigger) {
+      if (initialTab) setActiveTab(initialTab);
+      if (initialStatusFilter) setStatusFilter(initialStatusFilter);
+      if (highlightParamName) {
+        setHighlightParam(highlightParamName);
+        const timer = setTimeout(() => {
+          setHighlightParam(undefined);
+        }, 5000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [navigationTrigger, initialTab, initialStatusFilter, highlightParamName]);
 
   // AI Interpretation & Technical Report state
   const [reportScope, setReportScope] = useState<'SINGLE' | 'ALL' | null>(null);
@@ -267,7 +305,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
 
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-300">
+    <div id="panel-resultados-muestra" className="space-y-6 animate-in fade-in-50 duration-300 scroll-mt-24">
       {/* Top Banner Status - Clean, animated & atmospheric */}
       <div
         className={`rounded-2xl p-4 sm:p-6 border shadow-2xl backdrop-blur-2xl transition-all relative overflow-hidden ${
@@ -624,7 +662,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
       {/* Tab 2: Detailed Technical Table */}
       {activeTab === 'TABLE' && (
-        <div className="bg-slate-900/60 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-5 sm:p-6 animate-in fade-in-50 duration-300">
+        <div id="panel-matriz-detallada" className="bg-slate-900/60 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-5 sm:p-6 animate-in fade-in-50 duration-300 scroll-mt-24">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5 pb-4 border-b border-white/10">
             <div>
               <h3 className="text-sm font-bold text-white">
@@ -706,13 +744,21 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                   filteredResults.map((r, idx) => {
                     const isPass = r.status === 'CUMPLE';
                     const isFail = r.status === 'TRANSGREDE';
+                    const isHighlighted =
+                      highlightParam &&
+                      r.parameterName.trim().toLowerCase() === highlightParam.trim().toLowerCase();
 
                     return (
                       <tr
                         key={r.parameterId}
-                        className={`hover:bg-white/[0.08] transition-colors ${
-                          idx % 2 === 0 ? 'bg-white/[0.01]' : 'bg-white/[0.03]'
-                        }`}
+                        id={`param-row-${r.parameterId}`}
+                        className={`transition-all duration-300 ${
+                          isHighlighted
+                            ? 'bg-rose-950/70 ring-2 ring-rose-500/80 shadow-lg shadow-rose-950/60'
+                            : idx % 2 === 0
+                            ? 'bg-white/[0.01]'
+                            : 'bg-white/[0.03]'
+                        } hover:bg-white/[0.08]`}
                       >
                         <td className="py-3 px-3.5 align-top font-semibold text-white">
                           {r.parameterName}

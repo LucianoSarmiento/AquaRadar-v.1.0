@@ -23,6 +23,7 @@ interface MultiSampleSummaryProps {
   samples: SampleItem[];
   activeSampleId: string;
   onSelectSample: (id: string) => void;
+  onNavigateToTransgression?: (sampleId: string, paramName: string) => void;
   onAddSample: () => void;
   onEvaluateAll: () => void;
   onExportMultiExcel: () => void;
@@ -34,6 +35,7 @@ export const MultiSampleSummary: React.FC<MultiSampleSummaryProps> = ({
   samples,
   activeSampleId,
   onSelectSample,
+  onNavigateToTransgression,
   onAddSample,
   onEvaluateAll,
   onExportMultiExcel,
@@ -288,34 +290,40 @@ export const MultiSampleSummary: React.FC<MultiSampleSummaryProps> = ({
             <span className="text-[10px] text-rose-400 font-mono">D.S. N° 004-2017-MINAM</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
             {allTransgressions.slice(0, 6).map((t, idx) => (
-              <div
+              <button
                 key={idx}
-                onClick={() => onSelectSample(t.sampleId)}
-                className="bg-slate-950/70 border border-rose-500/30 rounded-xl p-2.5 hover:border-rose-400 transition cursor-pointer flex flex-col justify-between group"
+                type="button"
+                id={`transgression-alert-card-${idx}`}
+                onClick={() => {
+                  if (onNavigateToTransgression) {
+                    onNavigateToTransgression(t.sampleId, t.paramName);
+                  } else {
+                    onSelectSample(t.sampleId);
+                  }
+                }}
+                className="w-full text-left bg-slate-950/70 hover:bg-slate-900/95 border border-rose-500/30 hover:border-rose-400 rounded-xl p-3 hover:shadow-lg hover:shadow-rose-950/40 transition-all duration-200 cursor-pointer flex flex-col justify-between group active:scale-[0.99] focus:outline-none focus:ring-1 focus:ring-rose-400/50"
+                title={`Ver transgresión de ${t.paramName} en el panel detallado de ${t.sampleName}`}
               >
-                <div className="flex items-center justify-between gap-1.5 mb-1">
-                  <span className="font-bold text-white truncate max-w-[140px]">
+                <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                  <span className="font-bold text-white group-hover:text-rose-200 transition-colors truncate max-w-[170px]">
                     {t.paramName}
                   </span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono font-bold">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono font-bold border border-rose-500/30 shrink-0">
                     {t.percent ? `${t.percent.toFixed(0)}%` : 'Excede'}
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-300">
+                <div className="text-[11px] text-slate-300 leading-snug">
                   Medido: <span className="font-mono text-white font-semibold">{t.valueText}</span> vs Límite:{' '}
                   <span className="font-mono text-cyan-300">{t.limitText}</span>
                 </div>
-                <div className="text-[10px] text-slate-400 mt-1.5 pt-1 border-t border-white/5 flex items-center justify-between">
-                  <span className="text-cyan-300 font-medium truncate max-w-[160px]">
+                <div className="text-[10px] text-slate-400 mt-2 pt-1.5 border-t border-white/5 flex items-center justify-between">
+                  <span className="text-cyan-300 font-medium truncate max-w-full">
                     {t.sampleName}
                   </span>
-                  <span className="text-cyan-400 group-hover:translate-x-0.5 transition-transform">
-                    →
-                  </span>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
           {allTransgressions.length > 6 && (
