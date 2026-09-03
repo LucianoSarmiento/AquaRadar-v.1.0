@@ -68,8 +68,8 @@ export const Header: React.FC<HeaderProps> = ({
               title="Consultar texto oficial y tabla del Anexo D.S. 004-2017-MINAM"
             >
               <BookOpen className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
-              <span className="hidden xs:inline sm:inline">Guía ECA</span>
-              <span className="xs:hidden">Guía</span>
+              <span className="hidden sm:inline">Guía ECA</span>
+              <span className="sm:hidden">Guía</span>
             </button>
 
             <button
@@ -79,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({
               title="Historial de evaluaciones guardadas"
             >
               <History className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-              <span className="hidden xs:inline sm:inline">Historial</span>
+              <span className="hidden sm:inline">Historial</span>
               {historyCount > 0 && (
                 <span className="ml-0.5 sm:ml-1 px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black border border-emerald-500/40">
                   {historyCount}
