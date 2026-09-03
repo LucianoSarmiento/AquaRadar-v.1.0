@@ -179,9 +179,9 @@ export const MarkdownView: React.FC<MarkdownViewProps> = ({
         renderedElements.push(
           <div
             key={`table-${i}`}
-            className="my-3.5 overflow-x-auto rounded-xl border border-slate-700/80 bg-slate-900/80 shadow-md"
+            className="my-3.5 overflow-x-auto rounded-xl border border-slate-700/80 bg-slate-900/80 shadow-md scrollbar-thin"
           >
-            <table className="w-full text-left text-[11px] text-slate-300 border-collapse">
+            <table className="w-full text-left text-[11px] text-slate-300 border-collapse min-w-[520px]">
               <thead className="bg-gradient-to-r from-slate-800 to-slate-900 text-cyan-300 font-bold border-b border-slate-700">
                 <tr>
                   {headerRow.map((h, hIdx) => (

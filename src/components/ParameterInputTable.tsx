@@ -396,15 +396,15 @@ export const ParameterInputTable: React.FC<ParameterInputTableProps> = ({
       </div>
 
       {/* Parameters Table with Live Feedback */}
-      <div className="overflow-x-auto border border-white/15 rounded-xl bg-slate-950/50 backdrop-blur-xl shadow-xl relative z-10">
-        <table className="w-full text-left text-xs border-collapse">
+      <div className="overflow-x-auto border border-white/15 rounded-xl bg-slate-950/50 backdrop-blur-xl shadow-xl relative z-10 scrollbar-thin">
+        <table className="w-full text-left text-xs border-collapse min-w-[620px] sm:min-w-full">
           <thead>
             <tr className="bg-white/[0.04] text-slate-300 border-b border-white/10 font-bold uppercase tracking-wider text-[10px]">
-              <th className="py-3 px-4 w-1/3">Parámetro Normado</th>
-              <th className="py-3 px-4 w-1/4">Valor de Laboratorio</th>
-              <th className="py-3 px-4 w-1/6">Unidad</th>
-              <th className="py-3 px-4 w-1/4">Límite ECA (D.S. 004-2017)</th>
-              <th className="py-3 px-4 w-28 text-center">Estado Previo</th>
+              <th className="py-3 px-3 sm:px-4 min-w-[170px] sm:w-1/3">Parámetro Normado</th>
+              <th className="py-3 px-3 sm:px-4 min-w-[140px] sm:w-1/4">Valor de Laboratorio</th>
+              <th className="py-3 px-3 sm:px-4 min-w-[85px] sm:w-1/6">Unidad</th>
+              <th className="py-3 px-3 sm:px-4 min-w-[130px] sm:w-1/4">Límite ECA (D.S. 004-2017)</th>
+              <th className="py-3 px-3 sm:px-4 min-w-[90px] sm:w-28 text-center">Estado Previo</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -452,8 +452,8 @@ export const ParameterInputTable: React.FC<ParameterInputTableProps> = ({
                     }`}
                   >
                     {/* Parameter name */}
-                    <td className="py-2.5 px-4 align-middle">
-                      <div className="font-semibold text-white flex items-center gap-1.5">
+                    <td className="py-2.5 px-3 sm:px-4 align-middle">
+                      <div className="font-semibold text-white flex items-center gap-1.5 flex-wrap">
                         <span>{param.name}</span>
                         {hasValue && liveStatus === 'CUMPLE' && (
                           <CheckCircle2 className="h-3 w-3 text-emerald-400 shrink-0" />
@@ -483,14 +483,14 @@ export const ParameterInputTable: React.FC<ParameterInputTableProps> = ({
                     </td>
 
                     {/* Value Input */}
-                    <td className="py-2.5 px-4 align-middle">
+                    <td className="py-2.5 px-3 sm:px-4 align-middle">
                       {isApplicable ? (
                         param.defaultUnit === 'Cualitativo' ? (
                           <select
                             id={`input-${param.id}`}
                             value={inputItem.value}
                             onChange={e => onInputChange(param.id, e.target.value, 'Cualitativo')}
-                            className="w-full text-xs px-3 py-1.5 border border-white/15 rounded-lg bg-slate-900 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40"
+                            className="w-full text-xs px-2.5 py-1.5 border border-white/15 rounded-lg bg-slate-900 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40"
                           >
                             <option value="" className="bg-slate-900 text-slate-400">-- Seleccione --</option>
                             <option value="Ausencia de material flotante" className="bg-slate-900 text-white">Ausencia de material flotante</option>
@@ -524,7 +524,7 @@ export const ParameterInputTable: React.FC<ParameterInputTableProps> = ({
                     </td>
 
                     {/* Unit Select */}
-                    <td className="py-2.5 px-4 align-middle">
+                    <td className="py-2.5 px-3 sm:px-4 align-middle">
                       {isApplicable && param.supportedUnits.length > 1 ? (
                         <select
                           id={`unit-${param.id}`}
@@ -546,14 +546,14 @@ export const ParameterInputTable: React.FC<ParameterInputTableProps> = ({
                     </td>
 
                     {/* Normative Limit */}
-                    <td className="py-2.5 px-4 align-middle">
+                    <td className="py-2.5 px-3 sm:px-4 align-middle">
                       <span className="font-mono text-xs font-semibold text-cyan-300">
                         {limit?.displayText || 'No normado (**)'}
                       </span>
                     </td>
 
                     {/* Inline Status */}
-                    <td className="py-2.5 px-4 align-middle text-center">
+                    <td className="py-2.5 px-3 sm:px-4 align-middle text-center">
                       {liveStatus === 'CUMPLE' && (
                         <span
                           className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs animate-in zoom-in-50 duration-200"
@@ -593,7 +593,7 @@ export const ParameterInputTable: React.FC<ParameterInputTableProps> = ({
       </div>
 
       {/* Floating / Sticky Living Action Bar for Evaluation */}
-      <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-white/10 relative z-10">
+      <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t border-white/10 relative z-10">
         <div className="flex items-center gap-3 text-xs text-slate-300 flex-wrap">
           <div className="flex items-center gap-1.5">
             <span className="font-bold text-white px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
@@ -618,13 +618,13 @@ export const ParameterInputTable: React.FC<ParameterInputTableProps> = ({
           )}
         </div>
 
-        <div className="flex flex-col items-end gap-1.5">
+        <div className="flex flex-col sm:items-end items-stretch gap-1.5">
           <button
             type="button"
             id="btn-evaluate-sample"
             onClick={onEvaluate}
             disabled={!canEvaluate}
-            className={`px-8 py-3.5 rounded-xl font-extrabold text-xs tracking-wider transition-all duration-300 flex items-center gap-2.5 ${
+            className={`w-full sm:w-auto px-6 sm:px-8 py-3.5 rounded-xl font-extrabold text-xs tracking-wider transition-all duration-300 flex items-center justify-center gap-2.5 ${
               canEvaluate
                 ? 'bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 hover:from-blue-500 hover:to-cyan-400 text-slate-950 font-black shadow-xl shadow-cyan-500/40 border border-cyan-300/60 scale-100 hover:scale-[1.02] active:scale-98 cursor-pointer animate-water-pulse'
                 : 'bg-white/5 border border-white/10 text-slate-500 cursor-not-allowed shadow-none'
@@ -637,12 +637,12 @@ export const ParameterInputTable: React.FC<ParameterInputTableProps> = ({
                 : 'Evaluar muestra contra los límites normativos del D.S. N° 004-2017-MINAM'
             }
           >
-            <Sparkles className="h-4 w-4 fill-current" />
-            <span>EVALUAR & GENERAR INFORME ECA</span>
-            <ChevronRight className="h-4 w-4" />
+            <Sparkles className="h-4 w-4 fill-current shrink-0" />
+            <span className="text-center">EVALUAR & GENERAR INFORME ECA</span>
+            <ChevronRight className="h-4 w-4 shrink-0" />
           </button>
           {!canEvaluate && (
-            <span className="text-[11px] text-amber-400/90 font-medium">
+            <span className="text-[11px] text-amber-400/90 font-medium text-center sm:text-right">
               {!isFullyConfigured
                 ? '⚠️ Requiere configurar Categoría y Subcategoría'
                 : '⚠️ Requiere al menos 1 parámetro con valor'}

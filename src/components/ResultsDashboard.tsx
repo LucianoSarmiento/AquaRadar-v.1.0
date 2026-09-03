@@ -270,31 +270,31 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     <div className="space-y-6 animate-in fade-in-50 duration-300">
       {/* Top Banner Status - Clean, animated & atmospheric */}
       <div
-        className={`rounded-2xl p-6 border shadow-2xl backdrop-blur-2xl transition-all relative overflow-hidden ${
+        className={`rounded-2xl p-4 sm:p-6 border shadow-2xl backdrop-blur-2xl transition-all relative overflow-hidden ${
           isCompliant
             ? 'bg-slate-900/80 text-white border-emerald-500/50 shadow-emerald-950/40'
             : 'bg-slate-900/80 text-white border-rose-500/50 shadow-rose-950/40'
         }`}
       >
-        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5 relative z-10">
-          <div className="flex items-start gap-4">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 sm:gap-5 relative z-10">
+          <div className="flex items-start gap-3 sm:gap-4">
             <div
-              className={`p-4 rounded-2xl shadow-lg shrink-0 transition-transform ${
+              className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-lg shrink-0 transition-transform ${
                 isCompliant
                   ? 'bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 shadow-emerald-500/30 animate-pulse'
                   : 'bg-rose-500/20 border border-rose-400/40 text-rose-300 shadow-rose-500/30 animate-pulse'
               }`}
             >
               {isCompliant ? (
-                <ShieldCheck className="h-8 w-8 text-emerald-400" />
+                <ShieldCheck className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-400" />
               ) : (
-                <AlertOctagon className="h-8 w-8 text-rose-400" />
+                <AlertOctagon className="h-6 w-6 sm:h-8 sm:w-8 text-rose-400" />
               )}
             </div>
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 <span
-                  className={`px-3 py-0.5 rounded-full text-[11px] font-black tracking-wider uppercase ${
+                  className={`px-2.5 sm:px-3 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black tracking-wider uppercase ${
                     isCompliant
                       ? 'bg-emerald-400 text-slate-950 shadow-sm'
                       : 'bg-rose-500 text-white shadow-sm'
@@ -302,16 +302,16 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 >
                   {isCompliant ? 'CONFORME CON EL ECA' : 'TRANSGREDE EL ECA'}
                 </span>
-                <span className="text-xs text-cyan-300 font-mono font-semibold">
+                <span className="text-[11px] sm:text-xs text-cyan-300 font-mono font-semibold">
                   • {summary.subcategoryCode} ({summary.categoryName})
                 </span>
               </div>
-              <h1 className="text-lg sm:text-xl font-bold mt-1.5 text-white">
+              <h1 className="text-base sm:text-xl font-bold mt-1 text-white leading-snug">
                 {isCompliant
                   ? 'Todos los parámetros cumplen con los Estándares de Calidad Ambiental evaluados.'
                   : `Se identificaron ${summary.transgresionCount} parámetro(s) que superan los límites del D.S. N° 004-2017-MINAM.`}
               </h1>
-              <p className="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
+              <p className="text-[11px] sm:text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
                 Evaluado para: <strong className="text-cyan-300">{summary.subcategoryName}</strong>.
                 {metadata.sampleCode && ` Muestra: ${metadata.sampleCode}.`}
                 {metadata.waterBody && ` Cuerpo: ${metadata.waterBody}.`}
@@ -320,49 +320,51 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </div>
 
           {/* Quick Action Export Buttons & Interactive Yellow Banner */}
-          <div className="flex flex-col items-start xl:items-end gap-2.5 self-start xl:self-center shrink-0">
-            <div className="flex items-center flex-wrap gap-2">
+          <div className="flex flex-col items-start xl:items-end gap-2.5 self-start xl:self-center shrink-0 w-full sm:w-auto">
+            <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
               <button
                 id="btn-export-pdf"
                 onClick={() => exportToPDF(summary, metadata, aiAnalysis || undefined)}
-                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition flex items-center gap-1.5 backdrop-blur-md active:scale-95 cursor-pointer shadow-sm"
+                className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] sm:text-xs font-bold border border-white/20 transition flex items-center gap-1.5 backdrop-blur-md active:scale-95 cursor-pointer shadow-sm"
                 title="Descargar informe oficial en formato PDF"
               >
-                <FileText className="h-3.5 w-3.5 text-cyan-300" />
-                <span>Reporte PDF</span>
+                <FileText className="h-3.5 w-3.5 text-cyan-300 shrink-0" />
+                <span className="hidden sm:inline">Reporte PDF</span>
+                <span className="sm:hidden">PDF</span>
               </button>
 
               <button
                 id="btn-export-excel"
                 onClick={() => exportToExcel(summary, metadata)}
-                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition flex items-center gap-1.5 backdrop-blur-md active:scale-95 cursor-pointer shadow-sm"
+                className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] sm:text-xs font-bold border border-white/20 transition flex items-center gap-1.5 backdrop-blur-md active:scale-95 cursor-pointer shadow-sm"
                 title="Exportar matriz de datos a Excel"
               >
-                <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-300" />
-                <span>Excel XLSX</span>
+                <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-300 shrink-0" />
+                <span className="hidden sm:inline">Excel XLSX</span>
+                <span className="sm:hidden">Excel</span>
               </button>
 
               <button
                 id="btn-save-history"
                 onClick={onSaveToHistory}
                 disabled={isSaved}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 backdrop-blur-md active:scale-95 ${
+                className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold border transition flex items-center gap-1.5 backdrop-blur-md active:scale-95 ${
                   isSaved
                     ? 'bg-emerald-600/30 text-emerald-300 border-emerald-500/40 cursor-default'
                     : 'bg-white/10 hover:bg-white/20 text-white border-white/20 cursor-pointer'
                 }`}
                 title="Guardar en historial"
               >
-                <Bookmark className="h-3.5 w-3.5" />
+                <Bookmark className="h-3.5 w-3.5 shrink-0" />
                 <span>{isSaved ? 'Guardado' : 'Guardar'}</span>
               </button>
 
               <button
                 id="btn-modify-inputs"
                 onClick={onModifyInputs}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-slate-950 font-extrabold text-xs transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/30 border border-cyan-300/40 active:scale-95 cursor-pointer"
+                className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-slate-950 font-extrabold text-[11px] sm:text-xs transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/30 border border-cyan-300/40 active:scale-95 cursor-pointer"
               >
-                <RefreshCw className="h-3.5 w-3.5" />
+                <RefreshCw className="h-3.5 w-3.5 shrink-0" />
                 <span>Modificar Datos</span>
               </button>
             </div>
@@ -389,7 +391,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                   }
                 }
               }}
-              className="group/hint inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 hover:border-amber-300 text-amber-200 hover:text-amber-100 text-xs font-medium backdrop-blur-md transition-all shadow-md shadow-amber-950/40 active:scale-95 cursor-pointer text-left"
+              className="group/hint inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 hover:border-amber-300 text-amber-200 hover:text-amber-100 text-[11px] sm:text-xs font-medium backdrop-blur-md transition-all shadow-md shadow-amber-950/40 active:scale-95 cursor-pointer text-left leading-snug"
               title="Desplazarse a la vista del Panel General de Muestras Ambientales"
             >
               <span className="flex h-2 w-2 rounded-full bg-amber-400 animate-ping shrink-0" />
@@ -407,37 +409,37 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
       </div>
 
       {/* 4 Sleek Living Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="bg-slate-900/60 backdrop-blur-2xl rounded-2xl p-4 sm:p-5 border border-white/15 shadow-xl">
-          <div className="text-xs font-medium text-slate-300 mb-1">Parámetros Evaluados</div>
-          <div className="text-2xl font-black text-white">{summary.totalEvaluated}</div>
-          <div className="text-[11px] text-slate-400 mt-1">Con valor registrado</div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+        <div className="bg-slate-900/60 backdrop-blur-2xl rounded-2xl p-3.5 sm:p-5 border border-white/15 shadow-xl">
+          <div className="text-[11px] sm:text-xs font-medium text-slate-300 mb-1 truncate">Parámetros Evaluados</div>
+          <div className="text-xl sm:text-2xl font-black text-white">{summary.totalEvaluated}</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-400 mt-1">Con valor registrado</div>
         </div>
 
-        <div className="bg-slate-900/60 backdrop-blur-2xl rounded-2xl p-4 sm:p-5 border border-emerald-500/30 shadow-xl">
-          <div className="text-xs font-medium text-emerald-400 mb-1 flex items-center gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            <span>Conformes con ECA</span>
+        <div className="bg-slate-900/60 backdrop-blur-2xl rounded-2xl p-3.5 sm:p-5 border border-emerald-500/30 shadow-xl">
+          <div className="text-[11px] sm:text-xs font-medium text-emerald-400 mb-1 flex items-center gap-1.5 truncate">
+            <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Conformes con ECA</span>
           </div>
-          <div className="text-2xl font-black text-emerald-400">{summary.compliantCount}</div>
-          <div className="text-[11px] text-slate-400 mt-1">Dentro del límite legal</div>
+          <div className="text-xl sm:text-2xl font-black text-emerald-400">{summary.compliantCount}</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-400 mt-1">Dentro del límite legal</div>
         </div>
 
-        <div className="bg-slate-900/60 backdrop-blur-2xl rounded-2xl p-4 sm:p-5 border border-rose-500/30 shadow-xl">
-          <div className="text-xs font-medium text-rose-400 mb-1 flex items-center gap-1.5">
-            <XCircle className="h-3.5 w-3.5" />
-            <span>Transgresiones</span>
+        <div className="bg-slate-900/60 backdrop-blur-2xl rounded-2xl p-3.5 sm:p-5 border border-rose-500/30 shadow-xl">
+          <div className="text-[11px] sm:text-xs font-medium text-rose-400 mb-1 flex items-center gap-1.5 truncate">
+            <XCircle className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Transgresiones</span>
           </div>
-          <div className="text-2xl font-black text-rose-400">{summary.transgresionCount}</div>
-          <div className="text-[11px] text-slate-400 mt-1">Superan o incumplen</div>
+          <div className="text-xl sm:text-2xl font-black text-rose-400">{summary.transgresionCount}</div>
+          <div className="text-[10px] sm:text-[11px] text-slate-400 mt-1">Superan o incumplen</div>
         </div>
 
-        <div className="bg-slate-900/60 backdrop-blur-2xl rounded-2xl p-4 sm:p-5 border border-cyan-500/30 shadow-xl">
-          <div className="text-xs font-medium text-cyan-300 mb-1 flex items-center gap-1.5">
-            <Percent className="h-3.5 w-3.5" />
-            <span>Tasa Cumplimiento</span>
+        <div className="bg-slate-900/60 backdrop-blur-2xl rounded-2xl p-3.5 sm:p-5 border border-cyan-500/30 shadow-xl">
+          <div className="text-[11px] sm:text-xs font-medium text-cyan-300 mb-1 flex items-center gap-1.5 truncate">
+            <Percent className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Tasa Cumplimiento</span>
           </div>
-          <div className="text-2xl font-black text-cyan-300">
+          <div className="text-xl sm:text-2xl font-black text-cyan-300">
             {summary.compliancePercentage.toFixed(1)}%
           </div>
           <div className="w-full bg-white/10 rounded-full h-1.5 mt-2 overflow-hidden">
@@ -456,38 +458,40 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
       </div>
 
       {/* Interactive Tabs: Overview & Visualizer / Matriz Detallada / Asistente IA */}
-      <div className="flex items-center gap-2 border-b border-white/10 pb-3">
+      <div className="flex items-center gap-1.5 sm:gap-2 border-b border-white/10 pb-2.5 overflow-x-auto scrollbar-none max-w-full">
         <button
           onClick={() => setActiveTab('OVERVIEW')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === 'OVERVIEW'
               ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-cyan-500/30 border border-cyan-400/40'
               : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10'
           }`}
         >
-          <TrendingUp className="h-3.5 w-3.5" />
-          <span>Gráfico Porcentual ECA</span>
+          <TrendingUp className="h-3.5 w-3.5 shrink-0" />
+          <span className="hidden sm:inline">Gráfico Porcentual ECA</span>
+          <span className="sm:hidden">Gráfico ECA</span>
         </button>
 
         <button
           onClick={() => setActiveTab('TABLE')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === 'TABLE'
               ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-cyan-500/30 border border-cyan-400/40'
               : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10'
           }`}
         >
-          <Layers className="h-3.5 w-3.5" />
-          <span>Matriz Completa ({summary.results.length})</span>
+          <Layers className="h-3.5 w-3.5 shrink-0" />
+          <span className="hidden sm:inline">Matriz Completa ({summary.results.length})</span>
+          <span className="sm:hidden">Matriz ({summary.results.length})</span>
         </button>
 
         <button
           id="tab-btn-ai-assistant"
           onClick={() => setActiveTab('AI')}
-          className={`relative group px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-2 cursor-pointer overflow-hidden ${
+          className={`relative group px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 sm:gap-2 cursor-pointer overflow-hidden whitespace-nowrap shrink-0 ${
             activeTab === 'AI'
-              ? 'bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-950 shadow-lg shadow-cyan-500/40 border border-cyan-200 font-extrabold scale-[1.02]'
-              : 'bg-gradient-to-r from-cyan-950/70 via-slate-900/90 to-blue-950/70 hover:from-cyan-900/80 hover:via-slate-800/90 hover:to-blue-900/80 text-cyan-200 hover:text-white border border-cyan-400/60 hover:border-cyan-300 shadow-[0_0_16px_rgba(6,182,212,0.22)] hover:shadow-[0_0_24px_rgba(6,182,212,0.45)] hover:scale-[1.03] active:scale-95'
+              ? 'bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-950 shadow-lg shadow-cyan-500/40 border border-cyan-200 font-extrabold scale-[1.01]'
+              : 'bg-gradient-to-r from-cyan-950/70 via-slate-900/90 to-blue-950/70 hover:from-cyan-900/80 hover:via-slate-800/90 hover:to-blue-900/80 text-cyan-200 hover:text-white border border-cyan-400/60 hover:border-cyan-300 shadow-[0_0_16px_rgba(6,182,212,0.22)] hover:shadow-[0_0_24px_rgba(6,182,212,0.45)] active:scale-95'
           }`}
         >
           {/* Shimmer light beam animation when inactive */}
@@ -510,14 +514,15 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 : 'text-cyan-300 animate-pulse group-hover:rotate-12 group-hover:scale-125'
             }`}
           />
-          <span className="tracking-wide">Interpretación Asistida</span>
+          <span className="tracking-wide hidden sm:inline">Interpretación Asistida</span>
+          <span className="tracking-wide sm:hidden">Informe IA</span>
 
           {/* Highlight Mini-Badge */}
           <span
-            className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md tracking-wider transition-all duration-300 ${
+            className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md tracking-wider transition-all duration-300 shrink-0 ${
               activeTab === 'AI'
                 ? 'bg-slate-950/80 text-cyan-300 border border-slate-950/20'
-                : 'bg-gradient-to-r from-cyan-400 to-teal-300 text-slate-950 shadow-xs shadow-cyan-400/50 group-hover:shadow-cyan-300/70 group-hover:scale-105'
+                : 'bg-gradient-to-r from-cyan-400 to-teal-300 text-slate-950 shadow-xs shadow-cyan-400/50 group-hover:shadow-cyan-300/70'
             }`}
           >
             IA
@@ -677,17 +682,17 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-white/15 rounded-xl bg-slate-950/40 backdrop-blur-md shadow-xl">
-            <table className="w-full text-left text-xs border-collapse">
+          <div className="overflow-x-auto border border-white/15 rounded-xl bg-slate-950/40 backdrop-blur-md shadow-xl scrollbar-thin">
+            <table className="w-full text-left text-xs border-collapse min-w-[640px]">
               <thead>
                 <tr className="bg-white/[0.06] text-slate-200 font-bold border-b border-white/10 uppercase tracking-wider text-[10px]">
-                  <th className="py-3 px-3.5">Parámetro</th>
-                  <th className="py-3 px-3.5">Valor Medido</th>
-                  <th className="py-3 px-3.5">Límite ECA</th>
-                  <th className="py-3 px-3.5 text-center">Pág.</th>
-                  <th className="py-3 px-3.5 text-center">Condición</th>
-                  <th className="py-3 px-3.5 text-center">% Límite</th>
-                  <th className="py-3 px-3.5">Detalle Técnico</th>
+                  <th className="py-3 px-3.5 min-w-[150px]">Parámetro</th>
+                  <th className="py-3 px-3.5 min-w-[110px]">Valor Medido</th>
+                  <th className="py-3 px-3.5 min-w-[110px]">Límite ECA</th>
+                  <th className="py-3 px-3.5 text-center min-w-[60px]">Pág.</th>
+                  <th className="py-3 px-3.5 text-center min-w-[100px]">Condición</th>
+                  <th className="py-3 px-3.5 text-center min-w-[70px]">% Límite</th>
+                  <th className="py-3 px-3.5 min-w-[160px]">Detalle Técnico</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -808,10 +813,10 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             </div>
 
             {/* Scope Selection Controls & Yellow Guidance Alert */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-wrap">
-              <div className="flex items-center gap-2 bg-slate-950/70 p-1.5 rounded-xl border border-white/10 shrink-0">
-                <div className="text-[11px] font-semibold text-slate-400 px-2 flex items-center gap-1.5">
-                  <Filter className="h-3.5 w-3.5 text-cyan-400" />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-950/70 p-1 sm:p-1.5 rounded-xl border border-white/10 shrink-0 overflow-x-auto scrollbar-none max-w-full">
+                <div className="text-[10px] sm:text-[11px] font-semibold text-slate-400 px-1.5 sm:px-2 flex items-center gap-1 sm:gap-1.5 shrink-0">
+                  <Filter className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-cyan-400" />
                   <span>Alcance:</span>
                 </div>
 
@@ -822,15 +827,16 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                     setReportScope('SINGLE');
                     if (aiError) setAiError(null);
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
                     reportScope === 'SINGLE'
-                      ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30 font-black border border-cyan-300/40 scale-[1.02]'
+                      ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30 font-black border border-cyan-300/40 scale-[1.01]'
                       : 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent'
                   }`}
                   title="Generar informe técnico exclusivamente para la muestra seleccionada"
                 >
-                  <Waves className="h-3.5 w-3.5" />
-                  <span>Muestra Activa ({metadata.sampleCode || activeSampleName || 'Actual'})</span>
+                  <Waves className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+                  <span className="hidden sm:inline">Muestra Activa ({metadata.sampleCode || activeSampleName || 'Actual'})</span>
+                  <span className="sm:hidden">Muestra Actual ({metadata.sampleCode || activeSampleName || 'Act.'})</span>
                 </button>
 
                 <button
@@ -840,15 +846,16 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                     setReportScope('ALL');
                     if (aiError) setAiError(null);
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
                     reportScope === 'ALL'
-                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 text-white shadow-md shadow-blue-500/30 font-black border border-blue-400/40 scale-[1.02]'
+                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 text-white shadow-md shadow-blue-500/30 font-black border border-blue-400/40 scale-[1.01]'
                       : 'text-slate-300 hover:bg-white/10 hover:text-white border border-transparent'
                   }`}
                   title="Generar informe técnico integral consolidando todas las muestras configuradas"
                 >
-                  <Layers className="h-3.5 w-3.5" />
-                  <span>Todas las Muestras ({totalConfiguredSamples})</span>
+                  <Layers className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+                  <span className="hidden sm:inline">Todas las Muestras ({totalConfiguredSamples})</span>
+                  <span className="sm:hidden">Todas ({totalConfiguredSamples})</span>
                 </button>
               </div>
 
@@ -872,7 +879,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                       filter: 'blur(2px)',
                       transition: { duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }
                     }}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-400/60 text-amber-200 text-xs font-medium shadow-lg shadow-amber-950/40 backdrop-blur-md whitespace-nowrap"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-400/60 text-amber-200 text-[11px] sm:text-xs font-medium shadow-lg shadow-amber-950/40 backdrop-blur-md whitespace-normal sm:whitespace-nowrap leading-snug"
                   >
                     <span className="flex h-2 w-2 rounded-full bg-amber-400 animate-ping shrink-0" />
                     <Info className="h-3.5 w-3.5 text-amber-300 shrink-0" />
@@ -884,10 +891,10 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </div>
 
           {/* Scope notice and Action Bar */}
-          <div className="p-3.5 rounded-xl bg-cyan-950/40 border border-cyan-500/20 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-cyan-100/90">
+          <div className="p-3 sm:p-3.5 rounded-xl bg-cyan-950/40 border border-cyan-500/20 text-[11px] sm:text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-cyan-100/90">
             <div className="flex items-center gap-2">
               <Info className="h-4 w-4 text-cyan-400 shrink-0" />
-              <span>
+              <span className="leading-snug">
                 Modo actual:{' '}
                 <strong className="text-white">
                   {reportScope === 'SINGLE'
@@ -910,10 +917,10 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 handleGenerateAi();
               }}
               disabled={isGeneratingAi}
-              className={`relative group px-4 py-2 rounded-xl font-extrabold text-xs transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden shrink-0 cursor-pointer active:scale-95 disabled:opacity-50 ${
+              className={`relative group px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl font-extrabold text-[11px] sm:text-xs transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 overflow-hidden shrink-0 cursor-pointer active:scale-95 disabled:opacity-50 w-full sm:w-auto ${
                 isGeneratingAi
                   ? 'bg-cyan-900/60 text-cyan-200 border border-cyan-500/40 cursor-wait'
-                  : 'bg-gradient-to-r from-cyan-950/80 via-slate-900/90 to-blue-950/80 hover:from-cyan-900 hover:via-slate-800 hover:to-blue-900 text-cyan-200 hover:text-white border border-cyan-400/60 hover:border-cyan-300 shadow-[0_0_16px_rgba(6,182,212,0.25)] hover:shadow-[0_0_24px_rgba(6,182,212,0.5)] hover:scale-[1.03]'
+                  : 'bg-gradient-to-r from-cyan-950/80 via-slate-900/90 to-blue-950/80 hover:from-cyan-900 hover:via-slate-800 hover:to-blue-900 text-cyan-200 hover:text-white border border-cyan-400/60 hover:border-cyan-300 shadow-[0_0_16px_rgba(6,182,212,0.25)] hover:shadow-[0_0_24px_rgba(6,182,212,0.5)]'
               }`}
             >
               {/* Shimmer light beam animation */}
@@ -931,16 +938,17 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
               {isGeneratingAi ? (
                 <>
-                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-cyan-300" />
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-cyan-300 shrink-0" />
                   <span>Generando informe...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-3.5 w-3.5 text-cyan-300 animate-pulse group-hover:rotate-12 group-hover:scale-125 transition-transform" />
-                  <span className="tracking-wide">{aiAnalysis ? 'Regenerar Informe Técnico' : 'Generar Informe Técnico'}</span>
+                  <Sparkles className="h-3.5 w-3.5 text-cyan-300 animate-pulse group-hover:rotate-12 group-hover:scale-125 transition-transform shrink-0" />
+                  <span className="tracking-wide hidden sm:inline">{aiAnalysis ? 'Regenerar Informe Técnico' : 'Generar Informe Técnico'}</span>
+                  <span className="tracking-wide sm:hidden">{aiAnalysis ? 'Regenerar Informe' : 'Generar Informe'}</span>
                   
                   {/* Highlight Micro-Badge */}
-                  <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md tracking-wider bg-gradient-to-r from-cyan-400 to-teal-300 text-slate-950 shadow-xs shadow-cyan-400/50 group-hover:shadow-cyan-300/70 group-hover:scale-105 transition-all">
+                  <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md tracking-wider bg-gradient-to-r from-cyan-400 to-teal-300 text-slate-950 shadow-xs shadow-cyan-400/50 group-hover:shadow-cyan-300/70 transition-all shrink-0">
                     OFICIAL
                   </span>
                 </>
@@ -1120,7 +1128,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               </div>
 
               {/* Main 12-Section Rendered Document */}
-              <div className="bg-slate-950/90 rounded-2xl p-6 sm:p-8 border border-cyan-500/20 text-xs leading-relaxed text-slate-200 backdrop-blur-md shadow-2xl overflow-x-auto">
+              <div className="bg-slate-950/90 rounded-2xl p-6 sm:p-8 border border-cyan-500/20 text-xs leading-relaxed text-slate-200 backdrop-blur-md shadow-2xl overflow-x-auto scrollbar-thin">
                 <MarkdownView
                   content={aiAnalysis}
                   summary={summary}

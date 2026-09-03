@@ -358,14 +358,14 @@ export const WaterWelcomeIntro: React.FC<WaterWelcomeIntroProps> = ({ onEnterApp
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-transparent to-slate-950/60 pointer-events-none" />
 
       {/* Top Bar Quick Skip Action */}
-      <div className="absolute top-6 right-6 z-20">
+      <div className="absolute top-4 sm:top-6 right-4 sm:right-6 z-20">
         <button
           id="btn-skip-intro"
           onClick={e => {
             e.stopPropagation();
             handleStart();
           }}
-          className="group px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-xs font-semibold backdrop-blur-xl border border-white/20 transition-all flex items-center gap-1.5 shadow-lg active:scale-95 cursor-pointer"
+          className="group px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/10 hover:bg-white/20 text-white/90 hover:text-white text-xs font-semibold backdrop-blur-xl border border-white/20 transition-all flex items-center gap-1.5 shadow-lg active:scale-95 cursor-pointer"
         >
           <span>Saltar</span>
           <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -373,10 +373,10 @@ export const WaterWelcomeIntro: React.FC<WaterWelcomeIntroProps> = ({ onEnterApp
       </div>
 
       {/* Main Center Content Container with Smooth Blur & Opacity Dissolve Transitions */}
-      <div className="relative z-10 max-w-4xl w-full px-6 text-center flex flex-col items-center justify-center min-h-[420px]">
+      <div className="relative z-10 max-w-4xl w-full px-4 sm:px-6 text-center flex flex-col items-center justify-center min-h-[380px] sm:min-h-[420px]">
         {/* MESSAGE CONTAINER WITH SMOOTH DISSOLVE EFFECT */}
         <div
-          className={`transform transition-all duration-500 ease-out flex flex-col items-center ${
+          className={`transform transition-all duration-500 ease-out flex flex-col items-center w-full ${
             isDissolving
               ? 'opacity-0 scale-95 blur-md -translate-y-3 pointer-events-none'
               : 'opacity-100 scale-100 blur-0 translate-y-0'
@@ -384,24 +384,24 @@ export const WaterWelcomeIntro: React.FC<WaterWelcomeIntroProps> = ({ onEnterApp
         >
           {/* STEP 0: BIENVENIDO A AQUARADAR */}
           {step === 0 && (
-            <div className="flex flex-col items-center space-y-6">
+            <div className="flex flex-col items-center space-y-4 sm:space-y-6 max-w-3xl mx-auto">
               {/* Liquid Droplet Emblem */}
               <div className="relative">
                 <div className="absolute -inset-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full blur-xl opacity-60 animate-pulse" />
-                <div className="relative h-20 w-20 rounded-2xl bg-slate-900/80 border border-cyan-400/50 backdrop-blur-2xl flex items-center justify-center text-cyan-300 shadow-2xl shadow-cyan-500/40">
-                  <Droplet className="h-10 w-10 fill-cyan-400/20 text-cyan-300 stroke-[1.75]" />
+                <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-slate-900/80 border border-cyan-400/50 backdrop-blur-2xl flex items-center justify-center text-cyan-300 shadow-2xl shadow-cyan-500/40">
+                  <Droplet className="h-8 w-8 sm:h-10 sm:w-10 fill-cyan-400/20 text-cyan-300 stroke-[1.75]" />
                 </div>
               </div>
 
               {/* Main Welcome Headline */}
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 text-xs font-bold uppercase tracking-widest backdrop-blur-md shadow-sm">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 text-[10px] sm:text-xs font-bold uppercase tracking-widest backdrop-blur-md shadow-sm">
                   <span>Monitoreo & Estándares Ambientales</span>
                 </div>
-                <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white via-cyan-100 to-cyan-300 tracking-tight leading-tight drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
+                <h1 className="text-2xl sm:text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white via-cyan-100 to-cyan-300 tracking-tight leading-tight drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
                   BIENVENIDO A AQUARADAR
                 </h1>
-                <p className="text-sm sm:text-lg text-slate-200/90 font-medium max-w-xl mx-auto drop-shadow-md leading-relaxed">
+                <p className="text-xs sm:text-base md:text-lg text-slate-200/90 font-medium max-w-xl mx-auto drop-shadow-md leading-relaxed px-2">
                   Plataforma técnica inteligente de evaluación hidrológica y verificación ambiental del agua en el Perú.
                 </p>
               </div>
@@ -410,24 +410,24 @@ export const WaterWelcomeIntro: React.FC<WaterWelcomeIntroProps> = ({ onEnterApp
 
           {/* STEP 1: TE AYUDO A EVALUAR LA CALIDAD AMBIENTAL DEL AGUA */}
           {step === 1 && (
-            <div className="flex flex-col items-center space-y-6">
+            <div className="flex flex-col items-center space-y-4 sm:space-y-6 max-w-3xl mx-auto">
               {/* Sparkles / Normative Shield Emblem */}
               <div className="relative">
                 <div className="absolute -inset-3 bg-gradient-to-r from-emerald-400 to-cyan-500 rounded-full blur-xl opacity-60 animate-pulse" />
-                <div className="relative h-20 w-20 rounded-2xl bg-slate-900/80 border border-emerald-400/50 backdrop-blur-2xl flex items-center justify-center text-emerald-300 shadow-2xl shadow-emerald-500/40">
-                  <ShieldCheck className="h-10 w-10 text-emerald-300 stroke-[1.75]" />
+                <div className="relative h-14 w-14 sm:h-20 sm:w-20 rounded-2xl bg-slate-900/80 border border-emerald-400/50 backdrop-blur-2xl flex items-center justify-center text-emerald-300 shadow-2xl shadow-emerald-500/40">
+                  <ShieldCheck className="h-7 w-7 sm:h-10 sm:w-10 text-emerald-300 stroke-[1.75]" />
                 </div>
               </div>
 
               {/* Helper Message Headline */}
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-bold uppercase tracking-widest backdrop-blur-md shadow-sm">
-                  <span>Normativa Oficial D.S. N° 004-2017-MINAM - ECA para agua</span>
+              <div className="space-y-2 sm:space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-[10px] sm:text-xs font-bold uppercase tracking-widest backdrop-blur-md shadow-sm">
+                  <span>Normativa Oficial D.S. N° 004-2017-MINAM</span>
                 </div>
-                <h2 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white via-emerald-100 to-cyan-200 tracking-tight leading-tight drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
+                <h2 className="text-xl sm:text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white via-emerald-100 to-cyan-200 tracking-tight leading-tight drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
                   TE AYUDO A EVALUAR LA CALIDAD AMBIENTAL DEL AGUA
                 </h2>
-                <p className="text-sm sm:text-lg text-slate-200/90 font-medium max-w-2xl mx-auto drop-shadow-md leading-relaxed">
+                <p className="text-xs sm:text-base md:text-lg text-slate-200/90 font-medium max-w-2xl mx-auto drop-shadow-md leading-relaxed px-2">
                   Calcula instantáneamente el cumplimiento de parámetros fisicoquímicos, inorgánicos, orgánicos y microbiológicos frente a los límites normativos oficiales.
                 </p>
               </div>
@@ -436,20 +436,20 @@ export const WaterWelcomeIntro: React.FC<WaterWelcomeIntroProps> = ({ onEnterApp
 
           {/* STEP 2: ¿COMENZAMOS? BUTTON */}
           {step === 2 && (
-            <div className="flex flex-col items-center space-y-7">
+            <div className="flex flex-col items-center space-y-4 sm:space-y-7 max-w-xl mx-auto">
               {/* Interactive Pulse Rings */}
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 via-cyan-400 to-teal-400 rounded-full blur-2xl opacity-75 animate-pulse" />
-                <div className="relative h-20 w-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-500 border border-white/40 backdrop-blur-2xl flex items-center justify-center text-white shadow-2xl shadow-cyan-500/50 animate-bounce duration-1000">
-                  <Droplet className="h-10 w-10 fill-white/20 text-white stroke-[2]" />
+                <div className="relative h-14 w-14 sm:h-20 sm:w-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-500 border border-white/40 backdrop-blur-2xl flex items-center justify-center text-white shadow-2xl shadow-cyan-500/50 animate-bounce duration-1000">
+                  <Droplet className="h-7 w-7 sm:h-10 sm:w-10 fill-white/20 text-white stroke-[2]" />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <span className="text-xs font-bold text-cyan-300 tracking-widest uppercase">
+              <div className="space-y-1 sm:space-y-2">
+                <span className="text-[10px] sm:text-xs font-bold text-cyan-300 tracking-widest uppercase">
                   Todo listo para tu evaluación
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-md">
+                <h3 className="text-lg sm:text-3xl font-bold text-white drop-shadow-md">
                   Comienza el análisis de tus muestras
                 </h3>
               </div>
@@ -461,16 +461,16 @@ export const WaterWelcomeIntro: React.FC<WaterWelcomeIntroProps> = ({ onEnterApp
                   e.stopPropagation();
                   handleStart();
                 }}
-                className="group relative px-10 py-5 sm:px-14 sm:py-6 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 hover:from-blue-500 hover:via-cyan-400 hover:to-teal-300 text-white font-extrabold text-xl sm:text-2xl tracking-wide shadow-[0_0_40px_rgba(6,182,212,0.6)] hover:shadow-[0_0_60px_rgba(6,182,212,0.9)] transition-all duration-300 transform hover:scale-105 active:scale-95 border border-white/40 backdrop-blur-xl flex items-center gap-3 cursor-pointer"
+                className="group relative px-6 py-3.5 sm:px-14 sm:py-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 hover:from-blue-500 hover:via-cyan-400 hover:to-teal-300 text-white font-extrabold text-sm sm:text-xl md:text-2xl tracking-wide shadow-[0_0_40px_rgba(6,182,212,0.6)] hover:shadow-[0_0_60px_rgba(6,182,212,0.9)] transition-all duration-300 transform hover:scale-105 active:scale-95 border border-white/40 backdrop-blur-xl flex items-center gap-2 sm:gap-3 cursor-pointer"
               >
-                <span className="relative z-10 flex items-center gap-3 drop-shadow-sm">
+                <span className="relative z-10 flex items-center gap-2 sm:gap-3 drop-shadow-sm">
                   ¿COMENZAMOS?
-                  <ArrowRight className="h-6 w-6 sm:h-7 sm:w-7 group-hover:translate-x-1.5 transition-transform" />
+                  <ArrowRight className="h-4 w-4 sm:h-7 sm:w-7 group-hover:translate-x-1.5 transition-transform" />
                 </span>
                 <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
 
-              <p className="text-xs text-slate-300/80 font-medium">
+              <p className="text-[11px] sm:text-xs text-slate-300/80 font-medium px-2">
                 Haz clic en el botón para ingresar a la matriz técnica de AquaRadar
               </p>
             </div>

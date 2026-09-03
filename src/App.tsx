@@ -776,16 +776,16 @@ export const App: React.FC = () => {
         {samples.length > 0 && (
           <div
             id="navigation-view-switcher"
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 scroll-mt-24"
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 pt-1 scroll-mt-24"
           >
-            <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
               <button
                 type="button"
                 onClick={() => {
                   setViewMode('INPUT');
                   setResultsErrorMessage(null);
                 }}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                   viewMode === 'INPUT'
                     ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/25 border border-cyan-400/50'
                     : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10'
@@ -798,7 +798,7 @@ export const App: React.FC = () => {
                 type="button"
                 id="tab-btn-results"
                 onClick={handleSwitchToResults}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                   shakeResultsTab
                     ? 'animate-error-shake ring-2 ring-rose-500 bg-rose-950/80 text-rose-200 border border-rose-500 shadow-lg shadow-rose-950/70'
                     : viewMode === 'RESULTS'
@@ -959,27 +959,36 @@ export const App: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 bg-slate-950/80 backdrop-blur-2xl border-t border-white/10 py-6 text-center text-xs text-slate-400 shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <footer className="relative z-10 bg-slate-950/80 backdrop-blur-2xl border-t border-white/10 py-4 sm:py-6 text-slate-400 shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <button
             type="button"
             onClick={() => setShowIntro(true)}
-            className="flex items-center gap-2 group cursor-pointer text-left focus:outline-none"
+            className="flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2 group cursor-pointer focus:outline-none transition-all"
             title="Ir a la pantalla de bienvenida"
           >
-            <div className="w-5 h-5 rounded-full bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center transition-transform group-hover:scale-110">
-              <Droplet className="h-3 w-3 text-cyan-300" />
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center sm:justify-start">
+              <div className="w-5 h-5 rounded-full bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center transition-transform group-hover:scale-110 shrink-0">
+                <Droplet className="h-3 w-3 text-cyan-300" />
+              </div>
+              <span className="font-bold text-white text-xs sm:text-sm group-hover:text-cyan-300 transition-colors">
+                AquaRadar Perú
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 text-[10px] font-mono border border-cyan-500/20 font-medium">
+                v2.0
+              </span>
+              <span className="text-slate-400 font-normal text-[11px] sm:text-xs">
+                © 2026
+              </span>
             </div>
-            <span className="font-bold text-white group-hover:text-cyan-300 transition-colors">AquaRadar Perú</span>
-            <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 text-[10px] font-mono border border-cyan-500/20 font-medium">v2.0</span>
-            <span className="text-slate-400 font-normal">© 2026</span>
-            <span className="text-slate-400">
-              — Sistema Multimuestra de Verificación de Calidad Ambiental del Agua (D.S. N° 004-2017-MINAM)
+            <span className="text-slate-400 text-[10px] sm:text-xs leading-tight sm:leading-normal text-center sm:text-left max-w-xl">
+              <span className="hidden sm:inline">— </span>
+              Sistema Multimuestra de Verificación de Calidad Ambiental del Agua (D.S. N° 004-2017-MINAM)
             </span>
           </button>
-          <div className="flex items-center gap-1.5 text-xs text-slate-400 select-none opacity-80" aria-label="Casa Altair">
+          <div className="flex items-center justify-center gap-1.5 text-[11px] sm:text-xs text-slate-400 select-none opacity-80 shrink-0" aria-label="Casa Altair">
             <span>Casa Altair</span>
-            <AltairEmblem size={16} className="w-4 h-4 text-slate-400" />
+            <AltairEmblem size={15} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400" />
           </div>
         </div>
       </footer>
